@@ -64,13 +64,15 @@ class PDFParser:
             # Extract title (first section or first line)
             title = sections[0]['title'] if sections else text_content[0][:100] if text_content else "Untitled"
             
+            # Store page count before closing
+            total_pages = doc.page_count
             doc.close()
             
             return PDFStructure(
                 title=title,
                 sections=sections,
                 paragraphs=text_content,
-                total_pages=doc.page_count
+                total_pages=total_pages
             )
             
         except Exception as e:
@@ -97,6 +99,7 @@ class PDFParser:
         try:
             doc = fitz.open(pdf_path)
             metadata = doc.metadata
+            page_count = doc.page_count
             doc.close()
             
             return {
@@ -107,7 +110,7 @@ class PDFParser:
                 'producer': metadata.get('producer', ''),
                 'creation_date': metadata.get('creationDate', ''),
                 'modification_date': metadata.get('modDate', ''),
-                'page_count': doc.page_count
+                'page_count': page_count
             }
         except Exception as e:
             logger.error(f"Error extracting metadata from {pdf_path}: {str(e)}")

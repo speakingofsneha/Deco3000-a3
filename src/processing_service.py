@@ -63,6 +63,8 @@ class PDFProcessingService:
             
             # Step 4: Generate bullets with RAG
             logger.info("Step 4: Generating bullets with RAG...")
+            # Ensure RAG system uses the same chunking service
+            self.rag_system.chunking_service = self.chunking_service
             bullets_data = self.rag_system.generate_comprehensive_bullets(
                 outline_items, 
                 vector_store
