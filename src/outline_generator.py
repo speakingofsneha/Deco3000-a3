@@ -13,7 +13,7 @@ class OutlineGenerator:
     def __init__(self):
         self.llm_service = get_llm_service()
     
-    def generate_outline(self, pdf_title: str, chunks: List[Chunk], max_sections: int = 8) -> List[OutlineItem]:
+    def generate_outline(self, pdf_title: str, chunks: List[Chunk], max_sections: int = 6) -> List[OutlineItem]:
         """Generate outline by analyzing content and creating meaningful slide titles"""
         
         # Group chunks by section and page order
@@ -85,7 +85,7 @@ class OutlineGenerator:
     def _extract_content_titles(self, text: str) -> List[str]:
         """Extract meaningful titles from content that would work for slides"""
         
-        # Look for common design report content patterns
+        # Look for design problem/solution focused patterns
         title_patterns = [
             r'General Purpose',  # From your PDF
             r'Target Audience',  # From your PDF
@@ -98,10 +98,6 @@ class OutlineGenerator:
             r'User Testing',     # Common in design reports
             r'Final Prototype',  # Common in design reports
             r'Key Findings',     # Common in design reports
-            r'Design Process',   # Common in design reports
-            r'User Insights',    # Common in design reports
-            r'Design Decisions', # Common in design reports
-            r'Implementation',   # Common in design reports
         ]
         
         found_titles = []
@@ -109,19 +105,23 @@ class OutlineGenerator:
             if re.search(pattern, text, re.IGNORECASE):
                 found_titles.append(pattern)
         
-        # Also look for content that suggests specific topics
+        # Look for content that suggests specific design topics
         if 'task management' in text.lower() and 'application' in text.lower():
-            found_titles.append('Task Management Applications')
+            found_titles.append('Task Management Problem')
         if 'overpromising' in text.lower() or 'overcomplicating' in text.lower():
             found_titles.append('Current Problems')
         if 'accomplishment' in text.lower() and 'completion' in text.lower():
             found_titles.append('User Experience Goals')
         if 'sketch' in text.lower() and 'wireframe' in text.lower():
-            found_titles.append('Design Concepts')
+            found_titles.append('Design Solution')
         if 'data' in text.lower() and 'model' in text.lower():
-            found_titles.append('System Architecture')
+            found_titles.append('System Design')
         if 'interview' in text.lower() and 'research' in text.lower():
             found_titles.append('User Research')
+        if 'empathise' in text.lower() or 'empathize' in text.lower():
+            found_titles.append('Problem Understanding')
+        if 'conceptualise' in text.lower() or 'conceptualize' in text.lower():
+            found_titles.append('Solution Development')
         
         return found_titles
     

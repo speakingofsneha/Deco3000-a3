@@ -31,6 +31,7 @@ class Slide(BaseModel):
     type: SlideType
     title: str
     content: List[BulletPoint]
+    provenance: List[str] = []  # Page numbers for the entire slide
     metadata: Dict[str, Any] = {}
 
 class SlideDeck(BaseModel):

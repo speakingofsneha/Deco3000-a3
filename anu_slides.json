@@ -5,21 +5,13 @@
       "id": "slide_1",
       "type": "title",
       "title": "Advanced Web Design",
-      "content": [
-        {
-          "text": "Generated from: anu.pdf",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "Created on: 2025-10-28",
-          "provenance": [],
-          "confidence": 1.0
-        }
-      ],
+      "content": [],
+      "provenance": [],
       "metadata": {
         "slide_number": 1,
-        "is_title": true
+        "is_title": true,
+        "source_pdf": "anu.pdf",
+        "created_date": "2025-10-28"
       }
     },
     {
@@ -28,65 +20,20 @@
       "title": "Advanced Web Design",
       "content": [
         {
-          "text": "Here are 5 concise and impactful bullet points that capture the key insights:",
-          "provenance": [
-            "chunk_0",
-            "chunk_42",
-            "chunk_29",
-            "chunk_26",
-            "chunk_55",
-            "chunk_20"
-          ],
+          "text": "Essential interactions in web-apps should be prioritized for usability testing and iteration before high-fidelity prototyping.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Users seek a stripped-down, humane to-do list that simplifies task management without overwhelming features.",
-          "provenance": [
-            "chunk_0",
-            "chunk_42",
-            "chunk_29",
-            "chunk_26",
-            "chunk_55",
-            "chunk_20"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Frictionless task creation is crucial, allowing users to quickly type and enter tasks with minimal clicks.",
-          "provenance": [
-            "chunk_0",
-            "chunk_42",
-            "chunk_29",
-            "chunk_26",
-            "chunk_55",
-            "chunk_20"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "The design should prioritize intuitive tooling, fostering productivity without exhausting user willpower.",
-          "provenance": [
-            "chunk_0",
-            "chunk_42",
-            "chunk_29",
-            "chunk_26",
-            "chunk_55",
-            "chunk_20"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Advanced web design requires balancing desktop and mobile experiences, ensuring seamless interactions across platforms.",
-          "provenance": [
-            "chunk_0",
-            "chunk_42",
-            "chunk_29",
-            "chunk_26",
-            "chunk_55",
-            "chunk_20"
-          ],
+          "text": "Simple, intuitive design is crucial for reducing user friction; e.g., seamless task creation with minimal clicks.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 5",
+        "Page 7"
       ],
       "metadata": {
         "slide_number": 2,
@@ -101,65 +48,20 @@
       "title": "Task Management Web-App",
       "content": [
         {
-          "text": "Here are 5 concise and impactful bullet points that capture the key insights:",
-          "provenance": [
-            "chunk_13",
-            "chunk_45",
-            "chunk_47",
-            "chunk_18",
-            "chunk_24",
-            "chunk_55"
-          ],
+          "text": "Customization options can be overwhelming, leading to mental exhaustion and anxiety.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Task management applications often overpromise and underdeliver, leading to user frustration and abandonment.",
-          "provenance": [
-            "chunk_13",
-            "chunk_45",
-            "chunk_47",
-            "chunk_18",
-            "chunk_24",
-            "chunk_55"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "The current design landscape prioritizes complexity over simplicity, making it difficult for users to achieve a sense of accomplishment.",
-          "provenance": [
-            "chunk_13",
-            "chunk_45",
-            "chunk_47",
-            "chunk_18",
-            "chunk_24",
-            "chunk_55"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "To succeed, our task management web-app must prioritize ease of use, minimal friction, and tangible accomplishments.",
-          "provenance": [
-            "chunk_13",
-            "chunk_45",
-            "chunk_47",
-            "chunk_18",
-            "chunk_24",
-            "chunk_55"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Users crave a delightful experience when managing tasks, not an overwhelming array of features and customisation options.",
-          "provenance": [
-            "chunk_13",
-            "chunk_45",
-            "chunk_47",
-            "chunk_18",
-            "chunk_24",
-            "chunk_55"
-          ],
+          "text": "Tasks often disappear without a sense of accomplishment or reward, making it feel like progress isn't being made.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 3",
+        "Page 4"
       ],
       "metadata": {
         "slide_number": 3,
@@ -174,53 +76,20 @@
       "title": "Design Process",
       "content": [
         {
-          "text": "Here are 3-5 concise, impactful bullet points that capture the key insights from the design process:",
-          "provenance": [
-            "chunk_26",
-            "chunk_20",
-            "chunk_4",
-            "chunk_7",
-            "chunk_18",
-            "chunk_23"
-          ],
+          "text": "Overcomplicated features and extensive customization options can be overwhelming and mentally exhausting.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Users crave a stripped-down, humane to-do list that gets the job done without overwhelming features or exhausting willpower.",
-          "provenance": [
-            "chunk_26",
-            "chunk_20",
-            "chunk_4",
-            "chunk_7",
-            "chunk_18",
-            "chunk_23"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "The existing task management applications are perceived as shallow copies of rigid, anxiety-inducing templates, emphasizing the need for a re-design.",
-          "provenance": [
-            "chunk_26",
-            "chunk_20",
-            "chunk_4",
-            "chunk_7",
-            "chunk_18",
-            "chunk_23"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "A decision matrix evaluating each solution against its goals led to the concept of offering a to-do list designed to make managing tasks more intuitive and productive.",
-          "provenance": [
-            "chunk_26",
-            "chunk_20",
-            "chunk_4",
-            "chunk_7",
-            "chunk_18",
-            "chunk_23"
-          ],
+          "text": "Users crave a re-designed approach that prioritizes simplicity, ease-of-use, and tangible progress.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 2",
+        "Page 3",
+        "Page 5"
       ],
       "metadata": {
         "slide_number": 4,
@@ -235,65 +104,30 @@
       "title": "empathise",
       "content": [
         {
-          "text": "Here are 5 concise and impactful bullet points that capture the key insights:",
-          "provenance": [
-            "chunk_48",
-            "chunk_50",
-            "chunk_51",
-            "chunk_25",
-            "chunk_8",
-            "chunk_6"
-          ],
+          "text": "Users crave a stripped-down, humane to-do list with no overcomplications.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Users crave a stripped-down, humane to-do list that fosters productivity without exhausting their willpower.",
-          "provenance": [
-            "chunk_48",
-            "chunk_50",
-            "chunk_51",
-            "chunk_25",
-            "chunk_8",
-            "chunk_6"
-          ],
+          "text": "Easy-to-use app with no learning curve and subtle nudges for task completion.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "The current app design is rigid, in-humane, and anxiety-inducing, overpromising and overcomplicating tasks with no tangible accomplishments.",
-          "provenance": [
-            "chunk_48",
-            "chunk_50",
-            "chunk_51",
-            "chunk_25",
-            "chunk_8",
-            "chunk_6"
-          ],
+          "text": "Clear categorisation of tasks is essential for organisation and productivity.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Intuitive design is crucial, allowing users to easily navigate features and categories, with subtle nudges to complete tasks rather than aggressive notifications.",
-          "provenance": [
-            "chunk_48",
-            "chunk_50",
-            "chunk_51",
-            "chunk_25",
-            "chunk_8",
-            "chunk_6"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Users seek an easy-to-use app with no learning curve, where they can dive into features without feeling overwhelmed.",
-          "provenance": [
-            "chunk_48",
-            "chunk_50",
-            "chunk_51",
-            "chunk_25",
-            "chunk_8",
-            "chunk_6"
-          ],
+          "text": "Current to-do systems are rigid and anxiety-inducing; empathetic design is needed.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 2",
+        "Page 5"
       ],
       "metadata": {
         "slide_number": 5,
@@ -308,41 +142,26 @@
       "title": "Target Audience",
       "content": [
         {
-          "text": "The target audience craves a stripped-down, humane to-do list that simplifies task management without overwhelming features or anxiety-inducing notifications.",
-          "provenance": [
-            "chunk_4",
-            "chunk_42",
-            "chunk_20",
-            "chunk_48",
-            "chunk_22",
-            "chunk_23"
-          ],
+          "text": "Target audience seeks a stripped-down, humane to-do list that gets the job done without exhaustion.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Users are overwhelmed by numerous task management applications with complex interfaces and features, leading to fatigue and abandonment after initial use.",
-          "provenance": [
-            "chunk_4",
-            "chunk_42",
-            "chunk_20",
-            "chunk_48",
-            "chunk_22",
-            "chunk_23"
-          ],
+          "text": "Individuals crave clear separation of tasks for organization and subtle nudges for completion rather than aggressive notifications.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "Key design goals include fostering productivity without exhausting willpower, offering clear separation for different task categories, and providing subtle nudges to complete tasks rather than aggressive notifications.",
-          "provenance": [
-            "chunk_4",
-            "chunk_42",
-            "chunk_20",
-            "chunk_48",
-            "chunk_22",
-            "chunk_23"
-          ],
+          "text": "Current to-do lists induce anxiety; users desire a re-design to alleviate this stress and foster productivity.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 2",
+        "Page 3",
+        "Page 4"
       ],
       "metadata": {
         "slide_number": 6,
@@ -357,210 +176,36 @@
       "title": "User flow",
       "content": [
         {
-          "text": "The user flow aims to provide a seamless onboarding experience, allowing users to type their name in a text field and update the \"y/n\" prompt.",
-          "provenance": [
-            "chunk_28",
-            "chunk_39",
-            "chunk_53",
-            "chunk_62",
-            "chunk_54",
-            "chunk_61"
-          ],
+          "text": "Users type their name in the onboarding process to replace the “y/n” prompt.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "To enhance usability, the list panel slides in, enabling mobile users to swipe left to remove it, while desktop users can tap outside the task card to return to home.",
-          "provenance": [
-            "chunk_28",
-            "chunk_39",
-            "chunk_53",
-            "chunk_62",
-            "chunk_54",
-            "chunk_61"
-          ],
+          "text": "The list panel slides in and can be removed by swiping left on mobile devices.",
+          "provenance": [],
           "confidence": 0.8
         },
         {
-          "text": "The design prioritizes simplicity, with a focus on basic, fast, and delightful experiences for managing tasks, as per the overarching goal.",
-          "provenance": [
-            "chunk_28",
-            "chunk_39",
-            "chunk_53",
-            "chunk_62",
-            "chunk_54",
-            "chunk_61"
-          ],
+          "text": "Tapping outside a task card takes users back to home, similar to desktop experience.",
+          "provenance": [],
+          "confidence": 0.8
+        },
+        {
+          "text": "Wireframes will undergo usability testing before high-fidelity prototyping and development.",
+          "provenance": [],
           "confidence": 0.8
         }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 10",
+        "Page 7"
       ],
       "metadata": {
         "slide_number": 7,
         "outline_item": "User flow",
         "part": 1,
         "total_parts": 1
-      }
-    },
-    {
-      "id": "slide_8",
-      "type": "content",
-      "title": "Annonated",
-      "content": [
-        {
-          "text": "The Annonated concept is rooted in user-centric design, focusing on relevance scores of 0.302 from various sources (Data Model, conceptualise, User flow, empathise, and Design Process).",
-          "provenance": [
-            "chunk_25",
-            "chunk_8",
-            "chunk_6",
-            "chunk_5",
-            "chunk_3",
-            "chunk_2"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Design decisions were informed by a deep understanding of users' needs, as reflected in the consistent relevance score across multiple sources.",
-          "provenance": [
-            "chunk_25",
-            "chunk_8",
-            "chunk_6",
-            "chunk_5",
-            "chunk_3",
-            "chunk_2"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "The Annonated approach prioritizes user-centric design, emphasizing the importance of empathy, conceptualisation, and data-driven insights to inform the design process.",
-          "provenance": [
-            "chunk_25",
-            "chunk_8",
-            "chunk_6",
-            "chunk_5",
-            "chunk_3",
-            "chunk_2"
-          ],
-          "confidence": 0.8
-        }
-      ],
-      "metadata": {
-        "slide_number": 8,
-        "outline_item": "Annonated",
-        "part": 1,
-        "total_parts": 1
-      }
-    },
-    {
-      "id": "slide_9",
-      "type": "content",
-      "title": "Paper Sketches?",
-      "content": [
-        {
-          "text": "Paper sketches reveal the importance of tangible artifacts in task management, providing a sense of accomplishment and progress through crossing out completed tasks.",
-          "provenance": [
-            "chunk_7",
-            "chunk_42",
-            "chunk_26",
-            "chunk_17",
-            "chunk_20",
-            "chunk_49"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Design goals prioritize simplicity and intuition over complex features, recognizing that willpower is a limited resource and most to-do apps exhaust it with overwhelming options.",
-          "provenance": [
-            "chunk_7",
-            "chunk_42",
-            "chunk_26",
-            "chunk_17",
-            "chunk_20",
-            "chunk_49"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "The ideal app fosters productivity without exhausting user willpower, offering an easy-to-use tool for jotting down tasks with minimal learning curve.",
-          "provenance": [
-            "chunk_7",
-            "chunk_42",
-            "chunk_26",
-            "chunk_17",
-            "chunk_20",
-            "chunk_49"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Complex tasks require deeper feature exploration, while simple tasks benefit from a streamlined experience, highlighting the need for flexibility in task management.",
-          "provenance": [
-            "chunk_7",
-            "chunk_42",
-            "chunk_26",
-            "chunk_17",
-            "chunk_20",
-            "chunk_49"
-          ],
-          "confidence": 0.8
-        },
-        {
-          "text": "Users seek a stripped-down, humane to-do list that gets the job done, without overcomplications or overwhelming features, emphasizing the importance of simplicity and ease-of-use.",
-          "provenance": [
-            "chunk_7",
-            "chunk_42",
-            "chunk_26",
-            "chunk_17",
-            "chunk_20",
-            "chunk_49"
-          ],
-          "confidence": 0.8
-        }
-      ],
-      "metadata": {
-        "slide_number": 9,
-        "outline_item": "Paper Sketches?",
-        "part": 1,
-        "total_parts": 1
-      }
-    },
-    {
-      "id": "slide_10",
-      "type": "content",
-      "title": "Summary",
-      "content": [
-        {
-          "text": "1. Advanced Web Design",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "2. Task Management Web-App",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "3. Design Process",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "4. empathise",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "5. Target Audience",
-          "provenance": [],
-          "confidence": 1.0
-        },
-        {
-          "text": "... and 3 more topics",
-          "provenance": [],
-          "confidence": 1.0
-        }
-      ],
-      "metadata": {
-        "slide_number": 10,
-        "is_summary": true
       }
     }
   ],
@@ -574,6 +219,6 @@
     "modification_date": "D:20251028021255Z",
     "page_count": 10
   },
-  "created_at": "2025-10-28T09:39:33.188780",
+  "created_at": "2025-10-28T10:05:33.104797",
   "source_pdf": "anu.pdf"
 }

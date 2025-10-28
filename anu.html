@@ -83,29 +83,26 @@
         }
         
         .bullet-point {
-            margin: 20px 0;
-            padding-left: 25px;
+            margin: 10px 0;
+            padding-left: 20px;
             position: relative;
-            background: #f8f9fa;
-            padding: 15px 20px 15px 45px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            transition: all 0.3s ease;
-        }
-        
-        .bullet-point:hover {
-            background: #e8f4fd;
-            transform: translateX(5px);
         }
         
         .bullet-point::before {
-            content: "▶";
-            color: #3498db;
+            content: "•";
+            color: #333;
             font-weight: bold;
             position: absolute;
-            left: 20px;
-            top: 15px;
+            left: 0;
+        }
+        
+        .slide-provenance {
             font-size: 0.8em;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-style: italic;
         }
         
         .title-slide {
@@ -185,11 +182,6 @@
         </div>
     </div>
     
-    <div class="stats" id="stats" style="display: none;">
-        <span id="total-slides">0 Slides</span>
-        <span id="total-bullets">0 Bullets</span>
-        <span id="provenance-coverage">0% Provenance</span>
-    </div>
 
     <script>
         let slideData = null;
@@ -203,7 +195,6 @@
                 }
                 slideData = await response.json();
                 renderSlides();
-                updateStats();
             } catch (error) {
                 console.error('Error loading slide data:', error);
                 showError('Failed to load slide deck. Please make sure anu_slides.json exists in the outputs folder.');
@@ -236,21 +227,20 @@
                 let content = `<div class="slide-title">${slide.title}</div><div class="slide-content">`;
                 
                 slide.content.forEach(bullet => {
-                    let bulletHtml = `<div class="bullet-point">${bullet.text}`;
-                    
-                    // Add provenance info if available
-                    if (bullet.provenance && bullet.provenance.length > 0) {
-                        bulletHtml += `<div class="provenance-info">Source: ${bullet.provenance.join(', ')} (Confidence: ${(bullet.confidence * 100).toFixed(0)}%)</div>`;
-                    }
-                    
-                    bulletHtml += '</div>';
-                    content += bulletHtml;
+                    content += `<div class="bullet-point">${bullet.text}</div>`;
                 });
+                
+                // Add slide-level provenance if available
+                if (slide.provenance && slide.provenance.length > 0) {
+                    content += `<div class="slide-provenance">Source: ${slide.provenance.join(', ')}</div>`;
+                }
                 
                 content += '</div>';
                 
                 if (slide.type === 'title') {
-                    content += '<div class="slide-info">' + slide.content.map(b => b.text).join('<br>') + '</div>';
+                    const sourcePdf = slide.metadata?.source_pdf || 'Unknown';
+                    const createdDate = slide.metadata?.created_date || 'Unknown';
+                    content += `<div class="slide-info">Generated from: ${sourcePdf}<br>Created on: ${createdDate}</div>`;
                 }
                 
                 slideDiv.innerHTML = content;
@@ -258,18 +248,6 @@
             });
         }
         
-        function updateStats() {
-            const totalSlides = slideData.slides.length;
-            const totalBullets = slideData.slides.reduce((sum, slide) => sum + slide.content.length, 0);
-            const bulletsWithProvenance = slideData.slides.reduce((sum, slide) => 
-                sum + slide.content.filter(bullet => bullet.provenance && bullet.provenance.length > 0).length, 0);
-            const provenanceCoverage = totalBullets > 0 ? Math.round((bulletsWithProvenance / totalBullets) * 100) : 0;
-            
-            document.getElementById('total-slides').textContent = `${totalSlides} Slides`;
-            document.getElementById('total-bullets').textContent = `${totalBullets} Bullets`;
-            document.getElementById('provenance-coverage').textContent = `${provenanceCoverage}% Provenance`;
-            document.getElementById('stats').style.display = 'block';
-        }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', loadSlideData);

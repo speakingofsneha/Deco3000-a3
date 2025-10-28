@@ -16,8 +16,8 @@ class RAGSystem:
         self, 
         outline_item: OutlineItem, 
         vector_store, 
-        top_k: int = 6,
-        max_bullets: int = 5
+        top_k: int = 5,
+        max_bullets: int = 4
     ) -> List[BulletPoint]:
         """Generate bullet points for an outline item using RAG"""
         
@@ -40,12 +40,17 @@ class RAGSystem:
             max_bullets  # This is now a maximum, not a fixed number
         )
         
-        # Add provenance information
+        # Add provenance information with page numbers
         bullets_with_provenance = []
         for bullet in bullets:
+            # Extract page numbers from chunks instead of chunk IDs
+            page_numbers = list(set([chunk.page_number for chunk, _ in similar_chunks]))
+            page_numbers.sort()
+            provenance_pages = [f"Page {page}" for page in page_numbers]
+            
             bullet_with_provenance = BulletPoint(
                 text=bullet,
-                provenance=chunk_ids,
+                provenance=provenance_pages,
                 confidence=0.8  # Default confidence
             )
             bullets_with_provenance.append(bullet_with_provenance)
@@ -110,23 +115,20 @@ class RAGSystem:
     ) -> str:
         """Create prompt for bullet point generation"""
         return f"""
-Create compelling bullet points for a design presentation slide about "{outline_item.title}".
+Create bullet points for a design presentation about "{outline_item.title}".
 
 Source Material:
 {context}
 
 Instructions:
-1. Create 3-5 concise, impactful bullet points that capture the key insights
-2. Each bullet should be 1 sentence maximum - clear and punchy
-3. Focus on the most important findings, decisions, or insights from the design process
-4. Use professional language suitable for a design presentation
+1. Create 3-4 concise bullet points that capture the key insights
+2. Each bullet should be short and clear - maximum 15 words
+3. Focus on the most important findings or insights from the design process
+4. Use direct, professional language
 5. Highlight key user insights, design decisions, or technical details
-6. Make each bullet point informative and engaging
-7. Prioritize actionable insights and concrete findings
+6. Make each bullet informative and engaging
+7. Prioritize concrete findings over general statements
 8. Each bullet should stand alone and be easily readable
-9. Focus on what matters most for understanding the design process
-
-Create bullet points that effectively communicate the design story and key insights.
 
 Format as a simple list with bullet points using "-" or "•" symbols.
 Do not include any introductory text, explanations, or meta-commentary.
@@ -169,7 +171,17 @@ Do not include any introductory text, explanations, or meta-commentary.
             "to summarize",
             "bullet points for",
             "presentation slide",
-            "concise bullet points"
+            "concise bullet points",
+            "here are",
+            "the key",
+            "main points",
+            "important information",
+            "key findings",
+            "design process",
+            "user experience",
+            "task management",
+            "applications often",
+            "current system"
         ]
         
         bullet_lower = bullet.lower()
@@ -206,8 +218,8 @@ Do not include any introductory text, explanations, or meta-commentary.
         self, 
         outline_items: List[OutlineItem], 
         vector_store,
-        top_k: int = 6,
-        max_bullets_per_item: int = 5
+        top_k: int = 5,
+        max_bullets_per_item: int = 4
     ) -> Dict[str, List[BulletPoint]]:
         """Generate bullets for all outline items based on content availability"""
         
