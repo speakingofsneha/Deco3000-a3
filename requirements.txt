@@ -1,0 +1,14 @@
+fastapi>=0.104.1
+uvicorn>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+PyPDF2>=3.0.1
+# pymupdf==1.23.8  # commented out due to build issues rip
+sentence-transformers>=2.2.2
+faiss-cpu>=1.12.0
+numpy>=1.24.3
+requests>=2.31.0
+python-dotenv>=1.0.0
+click>=8.1.7
+rich>=13.7.0
+typer>=0.9.0
