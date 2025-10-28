@@ -42,10 +42,14 @@ class PDFProcessingService:
             
             # Step 2: Chunk and embed
             logger.info("Step 2: Chunking and embedding...")
+            # Use smaller chunks with more overlap for better content capture
+            effective_chunk_size = min(request.chunk_size, 400)
+            effective_overlap = max(request.overlap, 100)
+            
             chunks = self.chunking_service.chunk_text(
                 pdf_structure, 
-                request.chunk_size, 
-                request.overlap
+                effective_chunk_size, 
+                effective_overlap
             )
             
             if len(chunks) > request.max_chunks:

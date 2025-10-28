@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Web Design - Slide Viewer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .slide-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .slide {
+            padding: 50px;
+            min-height: 500px;
+            display: block;
+            border-bottom: 1px solid #ecf0f1;
+            position: relative;
+        }
+        
+        .slide:last-child {
+            border-bottom: none;
+        }
+        
+        .slide-number {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: #3498db;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .slide-title {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .slide-content {
+            font-size: 1.3em;
+            line-height: 1.7;
+            color: #34495e;
+        }
+        
+        .bullet-point {
+            margin: 20px 0;
+            padding-left: 25px;
+            position: relative;
+            background: #f8f9fa;
+            padding: 15px 20px 15px 45px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        
+        .bullet-point:hover {
+            background: #e8f4fd;
+            transform: translateX(5px);
+        }
+        
+        .bullet-point::before {
+            content: "▶";
+            color: #3498db;
+            font-weight: bold;
+            position: absolute;
+            left: 20px;
+            top: 15px;
+            font-size: 0.8em;
+        }
+        
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .title-slide .slide-title {
+            color: white;
+            border-bottom: 3px solid white;
+            font-size: 3.5em;
+            margin-bottom: 40px;
+        }
+        
+        .slide-info {
+            font-size: 1.2em;
+            margin-top: 40px;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .provenance-info {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            background: #fdf2f2;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            margin: 20px;
+        }
+        
+        .stats {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .stats span {
+            margin: 0 20px;
+            padding: 5px 15px;
+            background: #3498db;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Advanced Web Design</h1>
+        <p>Dynamic Slide Deck Viewer</p>
+    </div>
+    
+    <div class="slide-container">
+        <div class="loading" id="loading">
+            Loading slide deck...
+        </div>
+    </div>
+    
+    <div class="stats" id="stats" style="display: none;">
+        <span id="total-slides">0 Slides</span>
+        <span id="total-bullets">0 Bullets</span>
+        <span id="provenance-coverage">0% Provenance</span>
+    </div>
+
+    <script>
+        let slideData = null;
+        
+        // Load slide data from JSON file
+        async function loadSlideData() {
+            try {
+                const response = await fetch('outputs/anu_slides.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                slideData = await response.json();
+                renderSlides();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading slide data:', error);
+                showError('Failed to load slide deck. Please make sure anu_slides.json exists in the outputs folder.');
+            }
+        }
+        
+        function showError(message) {
+            const container = document.querySelector('.slide-container');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        function renderSlides() {
+            const container = document.querySelector('.slide-container');
+            container.innerHTML = '';
+
+            slideData.slides.forEach((slide, index) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = 'slide';
+                
+                if (slide.type === 'title') {
+                    slideDiv.classList.add('title-slide');
+                }
+
+                // Add slide number
+                const slideNumber = document.createElement('div');
+                slideNumber.className = 'slide-number';
+                slideNumber.textContent = `${index + 1} / ${slideData.slides.length}`;
+                slideDiv.appendChild(slideNumber);
+
+                let content = `<div class="slide-title">${slide.title}</div><div class="slide-content">`;
+                
+                slide.content.forEach(bullet => {
+                    let bulletHtml = `<div class="bullet-point">${bullet.text}`;
+                    
+                    // Add provenance info if available
+                    if (bullet.provenance && bullet.provenance.length > 0) {
+                        bulletHtml += `<div class="provenance-info">Source: ${bullet.provenance.join(', ')} (Confidence: ${(bullet.confidence * 100).toFixed(0)}%)</div>`;
+                    }
+                    
+                    bulletHtml += '</div>';
+                    content += bulletHtml;
+                });
+                
+                content += '</div>';
+                
+                if (slide.type === 'title') {
+                    content += '<div class="slide-info">' + slide.content.map(b => b.text).join('<br>') + '</div>';
+                }
+                
+                slideDiv.innerHTML = content;
+                container.appendChild(slideDiv);
+            });
+        }
+        
+        function updateStats() {
+            const totalSlides = slideData.slides.length;
+            const totalBullets = slideData.slides.reduce((sum, slide) => sum + slide.content.length, 0);
+            const bulletsWithProvenance = slideData.slides.reduce((sum, slide) => 
+                sum + slide.content.filter(bullet => bullet.provenance && bullet.provenance.length > 0).length, 0);
+            const provenanceCoverage = totalBullets > 0 ? Math.round((bulletsWithProvenance / totalBullets) * 100) : 0;
+            
+            document.getElementById('total-slides').textContent = `${totalSlides} Slides`;
+            document.getElementById('total-bullets').textContent = `${totalBullets} Bullets`;
+            document.getElementById('provenance-coverage').textContent = `${provenanceCoverage}% Provenance`;
+            document.getElementById('stats').style.display = 'block';
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', loadSlideData);
+    </script>
+</body>
+</html>

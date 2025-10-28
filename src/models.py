@@ -42,9 +42,9 @@ class SlideDeck(BaseModel):
 
 class PDFProcessingRequest(BaseModel):
     pdf_path: str
-    max_chunks: int = 1000
-    chunk_size: int = 500
-    overlap: int = 50
+    max_chunks: int = 1500
+    chunk_size: int = 400
+    overlap: int = 100
 
 class PDFProcessingResponse(BaseModel):
     success: bool

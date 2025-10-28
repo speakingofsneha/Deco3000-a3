@@ -17,10 +17,17 @@ class PDFParser:
     def __init__(self):
         self.section_patterns = [
             r'^\d+\.?\s+[A-Z][^.]*$',  # 1. Title or 1 Title
+            r'^\d{2}\s+[a-z]+$',       # 01 empathise, 02 conceptualise
             r'^[A-Z][A-Z\s]+$',        # ALL CAPS TITLES
             r'^\d+\.\d+\.?\s+[A-Z]',   # 1.1. Subtitle
             r'^Chapter\s+\d+',         # Chapter 1
             r'^Section\s+\d+',         # Section 1
+            r'^Data Model$',           # Data Model
+            r'^Design Goals$',         # Design Goals
+            r'^Target Audience$',      # Target Audience
+            r'^General Purpose$',      # General Purpose
+            r'^Paper Sketches$',       # Paper Sketches
+            r'^[A-Z][a-z]+\s+[A-Z][a-z]+$',  # Two Word Titles
         ]
     
     def extract_text_and_structure(self, pdf_path: str) -> PDFStructure:
@@ -84,12 +91,33 @@ class PDFParser:
         if len(line) < 3 or len(line) > 100:
             return False
         
+        # Check against patterns
         for pattern in self.section_patterns:
             if re.match(pattern, line):
                 return True
         
-        # Additional heuristics
+        # Additional heuristics for design reports
         if line.isupper() and len(line.split()) <= 5:
+            return True
+        
+        # Check for numbered sections (01, 02, etc.)
+        if re.match(r'^\d{2}\s+[a-z]+', line):
+            return True
+        
+        # Check for common design report headers
+        design_headers = [
+            'empathise', 'conceptualise', 'ideate', 'prototype', 'test',
+            'research', 'analysis', 'findings', 'insights', 'recommendations',
+            'wireframes', 'mockups', 'user flow', 'personas', 'journey map'
+        ]
+        
+        line_lower = line.lower()
+        for header in design_headers:
+            if header in line_lower and len(line.split()) <= 3:
+                return True
+        
+        # Check for title case patterns
+        if line.istitle() and len(line.split()) <= 4:
             return True
         
         return False
