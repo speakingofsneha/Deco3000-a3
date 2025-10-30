@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Slide Deck</title>
   <link rel="stylesheet" href="./deck.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body class="app">
   <header class="topbar">
@@ -14,12 +16,21 @@
       <span class="crumb__meta" id="deck-meta">10 slides</span>
     </div>
     <div class="actions">
-      <button class="btn btn--ghost" id="refresh">Refresh</button>
+      <button class="btn btn--ghost" id="export">Export</button>
     </div>
   </header>
 
   <main class="deck" id="deck"></main>
   <script>
+    let pdfName = 'slides'; // Default name if not found
+    
+    function extractPdfName(sourcePdf) {
+      if (!sourcePdf) return 'slides';
+      const pathParts = sourcePdf.split('/');
+      const filename = pathParts[pathParts.length - 1];
+      return filename.replace(/\.pdf$/i, '');
+    }
+
     async function loadDeck() {
       const params = new URLSearchParams(window.location.search);
       const file = params.get('file') || '../outputs/latest.json';
@@ -29,7 +40,13 @@
         const res = await fetch(file);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        document.getElementById('deck-title').textContent = data.title || 'Slide Deck';
+        
+        // Extract PDF name from source_pdf
+        pdfName = extractPdfName(data.source_pdf);
+        
+        // Update deck title and page title to show PDF name
+        document.getElementById('deck-title').textContent = pdfName;
+        document.title = `${pdfName} - Slide Deck`;
         document.getElementById('deck-meta').textContent = `${(data.slides||[]).length} slides`;
 
         (data.slides || []).forEach((slide, idx) => {
@@ -67,7 +84,67 @@
         deckEl.appendChild(section);
       }
     }
-    document.getElementById('refresh').addEventListener('click', loadDeck);
+
+    async function exportSlides() {
+      const slides = document.querySelectorAll('.slide');
+      if (slides.length === 0) {
+        alert('No slides to export');
+        return;
+      }
+
+      const button = document.getElementById('export');
+      const originalText = button.textContent;
+      button.textContent = 'Exporting...';
+      button.disabled = true;
+
+      try {
+        const zip = new JSZip();
+        const canvasPromises = [];
+
+        for (let i = 0; i < slides.length; i++) {
+          const slide = slides[i];
+          const canvasPromise = html2canvas(slide, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            logging: false
+          }).then(canvas => {
+            return new Promise((resolve) => {
+              canvas.toBlob((blob) => {
+                zip.file(`slide ${i + 1}.png`, blob);
+                resolve();
+              }, 'image/png');
+            });
+          });
+          canvasPromises.push(canvasPromise);
+        }
+
+        await Promise.all(canvasPromises);
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${pdfName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        button.textContent = 'Exported!';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 2000);
+      } catch (error) {
+        console.error('Export failed:', error);
+        alert('Export failed: ' + error.message);
+        button.textContent = originalText;
+        button.disabled = false;
+      }
+    }
+
+    document.getElementById('export').addEventListener('click', exportSlides);
     document.addEventListener('DOMContentLoaded', loadDeck);
   </script>
 </body>
