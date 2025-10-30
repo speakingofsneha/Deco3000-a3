@@ -3,6 +3,7 @@ import json
 import uuid
 from datetime import datetime
 import logging
+from pathlib import Path
 
 from .models import Slide, SlideDeck, SlideType, OutlineItem, BulletPoint
 
@@ -78,8 +79,9 @@ class SlideGenerator:
         
         slides = []
         
-        # Create title slide
-        title_slide = self._create_title_slide(pdf_title, source_pdf)
+        # Create title slide using PDF filename (without extension) to match crumb title
+        pdf_filename = Path(source_pdf).stem  # Gets filename without extension
+        title_slide = self._create_title_slide(pdf_filename, source_pdf)
         slides.append(title_slide)
         
         # Create content slides for each outline item
@@ -95,9 +97,9 @@ class SlideGenerator:
                 simple_slide = self._create_simple_slide(outline_item)
                 slides.append(simple_slide)
         
-        # Generate slide deck
+        # Generate slide deck - use PDF filename for deck title to match crumb title
         slide_deck = SlideDeck(
-            title=pdf_title,
+            title=pdf_filename,
             slides=slides,
             metadata=metadata or {},
             created_at=datetime.now().isoformat(),

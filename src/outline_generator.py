@@ -22,17 +22,82 @@ class OutlineGenerator:
 
         # Canonical topic order for design visual reports
         topic_order = [
+            "Context",
             "Problem Overview",
             "User Research",
             "Key Insights",
-            "Design Goals",
-            "Solution Overview",
+            "Ideation",
+            "Chosen direction",
             "User Flow",
             "Wireframes",
-            "System / Data Model",
+            "Data Model",
             "Evaluation / Testing",
+            "Final Design",
             "Next Steps"
         ]
+
+        # Broad keyword patterns aligned with the canonical order above
+        topic_patterns: Dict[str, List[str]] = {
+            "Context": [
+                r"context", r"background", r"overview", r"introduction",
+                r"project brief", r"why", r"scope", r"opportunity",
+                r"stakeholder", r"current(\s|-)state", r"existing system"
+            ],
+            "Problem Overview": [
+                r"problem", r"problem statement", r"challenge", r"pain point",
+                r"opportunity area", r"current(\s|-)state", r"as-is",
+                r"we aim", r"we need", r"why this matters", r"understand"
+            ],
+            "User Research": [
+                r"user research", r"research", r"method", r"interview",
+                r"survey", r"questionnaire", r"observation", r"participant",
+                r"persona", r"journey map", r"empathy map",
+                r"contextual inquiry", r"sample size"
+            ],
+            "Key Insights": [
+                r"insight", r"key insight", r"learning", r"theme",
+                r"finding", r"pattern", r"we found", r"we observed",
+                r"synthesis", r"affinity", r"quote"
+            ],
+            "Ideation": [
+                r"ideation", r"brainstorm", r"concept", r"idea", 
+                r"sketch", r"how might we", r"hmw", r"storyboard",
+                r"low(\s|-)fi", r"wire sketch"
+            ],
+            "Chosen direction": [
+                r"chosen solution", r"final concept", r"approach",
+                r"selected idea", r"we chose", r"why we selected",
+                r"solution direction", r"concept direction"
+            ],
+            "User Flow": [
+                r"user flow", r"task flow", r"navigation flow",
+                r"happy path", r"user journey", r"user steps",
+                r"interaction flow", r"screen flow"
+            ],
+            "Wireframes": [
+                r"wireframe", r"mockup", r"screen", r"ui flow",
+                r"prototype", r"layout", r"fidelity", r"annotation"
+            ],
+            "Data Model": [
+                r"data model", r"system architecture", r"entity",
+                r"schema", r"er diagram", r"system design",
+                r"information structure", r"information architecture"
+            ],
+            "Evaluation / Testing": [
+                r"usability", r"user test", r"testing", r"feedback",
+                r"iteration", r"issue", r"finding", r"participant",
+                r"task completion", r"observation", r"result"
+            ],
+            "Final Design": [
+                r"final design", r"hi(\s|-)fi", r"visual design",
+                r"final prototype", r"interaction", r"screens",
+                r"design system", r"end result"
+            ],
+            "Next Steps": [
+                r"next step", r"future work", r"improvement",
+                r"roadmap", r"plan", r"what's next", r"future iteration"
+            ],
+        }
 
         # Broad keyword patterns that generalize across reports
         topic_patterns: Dict[str, List[str]] = {
@@ -49,7 +114,7 @@ class OutlineGenerator:
             "Design Goals": [
                 r"goal", r"objective", r"success metric", r"design principle"
             ],
-            "Solution Overview": [
+            "Chosen direction": [
                 r"solution", r"concept", r"approach", r"ideation", r"prototype", r"wireframe"
             ],
             "User Flow": [

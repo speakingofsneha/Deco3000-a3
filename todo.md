@@ -4,7 +4,7 @@
 - [x] retrieve with provenance 
 - [x] RAG-generate outline as outline.json 
 - [x] map .json content onto slide template 
-  - [ ] needs to know when to add placeholder images 
+  - [x] needs to know when to add placeholder images 
 - [x] png
   - [x] svg export or editing text in slides
 
@@ -18,12 +18,14 @@
  - [ ] very convuluded 'ai-esuqe' language, needs to be clearer, simpler & more natural. 
  - [ ] not sure if we need provenance (since content is short, it is easy to check if content is hallucinated or not) 
  - [ ] remove api nonsense 
- - [ ] body text & heading still dont match sometimes 
+ - [ ] body text & heading still dont always match sometimes 
 
 
 ## design 
 - [x] light & dark mode for slides 
-- [ ] slides template (diff layouts)
+- [x] slides template (diff layouts)
+    - [x] no of points 
+    - [ ] media + description 
 - [ ] interface for application 
 - [x] add favicon
 

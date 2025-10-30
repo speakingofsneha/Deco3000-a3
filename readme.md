@@ -20,6 +20,74 @@ The result is a JSON file that you can view in your browser using the included s
 - **Ollama** - A free, local AI server that runs on your computer
 - **At least 8GB of RAM** (to run the AI model)
 
+## Install on macOS (step-by-step)
+
+Follow these steps if you're on macOS.
+
+### 0) Prerequisites: Homebrew (optional but recommended)
+
+- If you don't have Homebrew:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+- Then follow the on-screen instructions to add Homebrew to your shell.
+
+### 1) Install Python and create a virtual environment
+
+- Check Python:
+```bash
+python3 --version
+```
+- If missing/outdated, install via Homebrew:
+```bash
+brew install python@3
+```
+- Create and activate a virtual environment in the project root:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+### 2) Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3) Install Ollama
+
+Pick ONE of the options below.
+
+- Using Homebrew (recommended):
+```bash
+brew install ollama
+```
+
+- Or download the macOS app: open `https://ollama.com/download` and install the .dmg, then launch Ollama.
+
+### 4) Start Ollama and download a model
+
+- Start the service (if using CLI install):
+```bash
+ollama serve
+```
+
+- In a new terminal, pull a model (first time only):
+```bash
+ollama pull llama3
+```
+
+### 5) Verify everything works
+
+```bash
+python --version
+ollama --version
+python test_system.py
+```
+
+If the test passes, you're ready to process PDFs.
+
 ## Quick Start
 
 ### 1. Install Python Dependencies
