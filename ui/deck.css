@@ -353,3 +353,241 @@ body.app {
 .slide__canvas--light {
   background: #ffffff;
 }
+
+/* ---------------------------------------------
+   Adaptive layouts for points/paragraph counts
+   --------------------------------------------- */
+
+/* base */
+.points {
+  display: grid;
+  gap: 20px;
+}
+
+/* make points look like paragraphs by default (use your existing .body sizes) */
+.point.body { margin: 0; }
+
+/* Center all content (overline, heading, points) vertically on slides */
+.slide:has(.points) .slide__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.slide:has(.points) .overline,
+.slide:has(.points) .heading {
+  text-align: center;
+  width: 100%;
+}
+
+.slide:has(.points) .heading {
+  margin-bottom: 40px;
+}
+
+.slide:has(.points) .points {
+  width: 100%;
+}
+
+/* Right-aligned variant for variety (every 2nd slide: 3n+2) */
+.slide:nth-child(3n+2):has(.points) .slide__content {
+  align-items: flex-end;
+}
+
+.slide:nth-child(3n+2):has(.points) .overline,
+.slide:nth-child(3n+2):has(.points) .heading {
+  text-align: right;
+}
+
+.slide:nth-child(3n+2):has(.points) .points {
+  align-items: flex-end;
+}
+
+/* Right-aligned variant for 2 points */
+.slide:nth-child(3n+2):has(.points .point:nth-of-type(2):nth-last-of-type(1)) .points {
+  justify-items: end;
+}
+
+/* Right-aligned variant for 3 points - align cards to right */
+.slide:nth-child(3n+2):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+  justify-items: end;
+}
+
+/* Left-aligned variant for variety (every 3rd slide: 3n) */
+.slide:nth-child(3n):has(.points) .slide__content {
+  align-items: flex-start;
+}
+
+.slide:nth-child(3n):has(.points) .overline,
+.slide:nth-child(3n):has(.points) .heading {
+  text-align: left;
+}
+
+.slide:nth-child(3n):has(.points) .points {
+  align-items: flex-start;
+}
+
+/* Left-aligned variant for 2 points */
+.slide:nth-child(3n):has(.points .point:nth-of-type(2):nth-last-of-type(1)) .points {
+  justify-items: start;
+}
+
+/* Left-aligned variant for 3 points - align cards to left */
+.slide:nth-child(3n):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+  justify-items: start;
+}
+
+/* 1) key statement (exactly 1 point) ? center & heading-style */
+.slide:has(.points .point:only-child) .slide__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Left-aligned key statement variant (every 3rd slide) */
+.slide:nth-child(3n):has(.points .point:only-child) .slide__content {
+  align-items: flex-start;
+}
+
+.slide:nth-child(3n):has(.points .point:only-child) .points .point {
+  text-align: left;
+  margin-left: 0;
+  margin-right: auto;
+  font-weight:500 !important;
+}
+
+/* Center-aligned key statement (default for 3n+1 and 3n+2) */
+.slide:nth-child(3n+1):has(.points .point:only-child) .slide__content,
+.slide:nth-child(3n+2):has(.points .point:only-child) .slide__content {
+  align-items: center;
+}
+
+.slide:nth-child(3n+1):has(.points .point:only-child) .points .point,
+.slide:nth-child(3n+2):has(.points .point:only-child) .points .point {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight:500 !important;
+}
+
+.slide:has(.points .point:only-child) .overline,
+.slide:has(.points .point:only-child) .heading {
+  display: none;
+}
+
+.slide:has(.points .point:only-child) .points {
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+
+.slide:has(.points .point:only-child) .points .point {
+  max-width: 72ch;
+  margin-inline: auto;
+  text-align: center;
+  font-size: 36px;
+  line-height: 1.2;
+  font-weight:500 !important;
+  margin: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* 2) 2-column description (exactly 2 points) */
+.slide:has(.points .point:nth-of-type(2):nth-last-of-type(1)) .points {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+/* 2 points - alternate layout: stacked vertically */
+.slide:nth-child(even):has(.points .point:nth-of-type(2):nth-last-of-type(1)) .points {
+  grid-template-columns: 1fr;
+  max-width: 65ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 3) 3 points (default = 3 cards across) */
+.slide:has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 3 points - alternate layout 1: 1+2 (one on top spanning, two below) */
+.slide:nth-child(3n+2):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.slide:nth-child(3n+2):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points .point:first-child {
+  grid-column: 1 / -1;
+}
+
+/* 3 points - alternate layout 2: 2+1 (two on top, one below spanning) */
+.slide:nth-child(3n):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.slide:nth-child(3n):has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points .point:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+/* 3) 3 points in list (force vertical list) */
+.slide.layout--list-3 .points {
+  grid-template-columns: 1fr !important;
+}
+.slide.layout--list-3 .points .point {
+  position: relative;
+  padding-left: 18px;
+}
+.slide.layout--list-3 .points .point::before {
+  content: "?";
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1.6;
+  color: #657082;
+}
+
+/* responsive fallbacks */
+@media (max-width: 1200px) {
+  .slide:has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 740px) {
+  .slide:has(.points) .points {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* subtle card vibe for multi-point grids while keeping body styles */
+.slide:has(.points .point:nth-of-type(2)) .points .point,
+.slide:has(.points .point:nth-of-type(3)) .points .point {
+  background: #f7f8fa;
+  border: 1px solid #e3e7ed;
+  border-radius: 5px;
+  padding: 16px;
+}
+
+/* Dark mode styles for points */
+.slide--dark .point,
+.slide__canvas--dark .point {
+  color: #EEEEEE !important;
+}
+
+.slide--dark:has(.points .point:nth-of-type(2)) .points .point,
+.slide--dark:has(.points .point:nth-of-type(3)) .points .point,
+.slide__canvas--dark:has(.points .point:nth-of-type(2)) .points .point,
+.slide__canvas--dark:has(.points .point:nth-of-type(3)) .points .point {
+  background: #1f1f1f;
+  border: 1px solid #3a3638;
+  color: #EEEEEE !important;
+}
+
+.slide--dark.layout--list-3 .points .point::before,
+.slide__canvas--dark.layout--list-3 .points .point::before {
+  color: #9ca3af;
+}

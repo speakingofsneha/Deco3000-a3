@@ -30,7 +30,95 @@
     </div>
   </header>
 
-  <main class="deck" id="deck"></main>
+  <main class="deck" id="deck">
+    <!-- ============================================
+         Adaptive Points Layout Examples
+         Uncomment these to see layout variants in action
+         ============================================ -->
+    
+    <!-- 1) KEY STATEMENT - Single centered point -->
+    <!--
+    <section class="slide slide--light">
+      <div class="slide__canvas">
+        <div class="slide__content">
+          <div class="overline">Example 1 / 9</div>
+          <h2 class="heading">why current tools fail students</h2>
+          <div class="points">
+            <p class="point body">Current academic tools don't address the deep comprehension gap between reading and understanding complex material.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    -->
+
+    <!-- 2) TWO COLUMN DESCRIPTION - Side by side -->
+    <!--
+    <section class="slide slide--light">
+      <div class="slide__canvas">
+        <div class="slide__content">
+          <div class="overline">Example 2 / 9</div>
+          <h2 class="heading">the problem space</h2>
+          <div class="points">
+            <p class="point body">Students struggle with dense academic texts that require sustained focus and contextual understanding.</p>
+            <p class="point body">Existing tools offer surface-level assistance without addressing deeper comprehension challenges.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    -->
+
+    <!-- 3) THREE CARDS - Default horizontal layout -->
+    <!--
+    <section class="slide slide--light">
+      <div class="slide__canvas">
+        <div class="slide__content">
+          <div class="overline">Example 3 / 9</div>
+          <h2 class="heading">key features</h2>
+          <div class="points">
+            <p class="point body">Interactive questioning that adapts to student responses in real-time.</p>
+            <p class="point body">Context-aware explanations that reference specific passages and concepts.</p>
+            <p class="point body">Progress tracking with personalized recommendations for improvement.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    -->
+
+    <!-- 3) THREE POINTS IN LIST - Vertical list with bullets (override) -->
+    <!--
+    <section class="slide slide--light layout--list-3">
+      <div class="slide__canvas">
+        <div class="slide__content">
+          <div class="overline">Example 4 / 9</div>
+          <h2 class="heading">methodology</h2>
+          <div class="points">
+            <p class="point body">First, we analyze the reading material for key concepts and relationships.</p>
+            <p class="point body">Next, we generate adaptive questions based on the student's current understanding.</p>
+            <p class="point body">Finally, we provide targeted feedback that builds comprehension progressively.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    -->
+
+    <!-- WITH MEDIA PLACEHOLDER - Example with optional media -->
+    <!--
+    <section class="slide slide--light">
+      <div class="slide__canvas">
+        <div class="slide__content">
+          <div class="overline">Example 5 / 5</div>
+          <h2 class="heading">system architecture</h2>
+          <div class="points">
+            <p class="point body">Frontend interface built with modern web technologies for responsive design.</p>
+            <p class="point body">Backend API handles intelligent question generation and response processing.</p>
+            <p class="point body">Database stores student progress and learning analytics for personalized insights.</p>
+          </div>
+          <div class="media-placeholder" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+    -->
+  </main>
 
   <footer class="bottom-toolbar">
     <div class="toolbar-group">
@@ -61,6 +149,13 @@
       const pathParts = sourcePdf.split('/');
       const filename = pathParts[pathParts.length - 1];
       return filename.replace(/\.pdf$/i, '');
+    }
+
+    function renderSlideContent(contentItems) {
+      if (!contentItems || contentItems.length === 0) return '';
+      // Limit to maximum of 3 points per slide
+      const limitedItems = contentItems.slice(0, 3);
+      return `<div class="points">${limitedItems.map(b => `<p class="point body">${b.text || ''}</p>`).join('')}</div>`;
     }
 
     async function loadDeck() {
@@ -102,9 +197,9 @@
             section.innerHTML = `
               <div class="slide__canvas slide__canvas--${savedTheme}">
                 <div class="slide__content">
-                  <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' • ' + slide.provenance.join(', ') : ''}</div>
+                  <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' ? ' + slide.provenance.join(', ') : ''}</div>
                   <h1 class="heading">${slide.title || ''}</h1>
-                  ${(slide.content||[]).map(b => `<p class=\"body\">${b.text || ''}</p>`).join('')}
+                  ${renderSlideContent(slide.content)}
                 </div>
               </div>
             `;
