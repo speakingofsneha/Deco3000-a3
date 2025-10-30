@@ -106,38 +106,9 @@ Reframe processes documents in five main steps:
 4. **Outline Generation** - Uses AI to create a logical structure based on the entire document
 5. **Content Generation** - For each section in the outline, searches for relevant information in your document and generates bullet points with citations
 
-The whole process happens locally on your computer?your documents never leave your machine.
+The whole process happens locally on your computer so your documents never leave your machine.
 
 
-## Output Format
-Reframe creates a JSON file with this structure:
-```json
-{
-  "title": "Your Document Title",
-  "slides": [
-    {
-      "id": "slide_1",
-      "type": "title",
-      "title": "Your Document Title",
-      "content": []
-    },
-    {
-      "id": "slide_2",
-      "type": "content",
-      "title": "Introduction",
-      "content": [
-        {
-          "text": "Key point from your document",
-          "confidence": 0.95
-        }
-      ],
-      "provenance": ["Page 1", "Page 2"]
-    }
-  ],
-  "source_pdf": "your-document.pdf",
-  "created_at": "2024-01-01T00:00:00"
-}
-```
 
 ## Troubleshooting
 **Ollama won't start?** Make sure you've installed it correctly and check that no other application is using port 11434.
