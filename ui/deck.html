@@ -151,9 +151,17 @@
       return filename.replace(/\.pdf$/i, '');
     }
 
-    function renderSlideContent(contentItems) {
+    function renderSlideContent(contentItems, isMediaSlide) {
       if (!contentItems || contentItems.length === 0) return '';
-      // Limit to maximum of 3 points per slide
+      
+      // For media slides: render as plain description text (no points/cards)
+      if (isMediaSlide) {
+        // Combine all content into a single description paragraph
+        const descriptionText = contentItems.map(b => b.text || '').join(' ');
+        return `<p class="body media-description">${descriptionText}</p>`;
+      }
+      
+      // Regular slides: render as points (max 3)
       const limitedItems = contentItems.slice(0, 3);
       return `<div class="points">${limitedItems.map(b => `<p class="point body">${b.text || ''}</p>`).join('')}</div>`;
     }
@@ -194,12 +202,22 @@
               </div>
             `;
           } else {
+            // Check if slide should have media
+            const hasMedia = slide.metadata && slide.metadata.has_media === true;
+            const isMediaSlide = slide.metadata && slide.metadata.is_media_slide === true;
+            const layoutClass = hasMedia ? ' layout--media-above' : '';
+            
+            section.className += layoutClass;
+            
+            const mediaHtml = hasMedia ? '<div class="media-placeholder" aria-hidden="true"></div>' : '';
+            
             section.innerHTML = `
               <div class="slide__canvas slide__canvas--${savedTheme}">
                 <div class="slide__content">
                   <div class="overline">${idx + 1} / ${(data.slides||[]).length}</div>
                   <h1 class="heading">${slide.title || ''}</h1>
-                  ${renderSlideContent(slide.content)}
+                  ${mediaHtml}
+                  ${renderSlideContent(slide.content, isMediaSlide)}
                 </div>
               </div>
             `;

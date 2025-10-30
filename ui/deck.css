@@ -185,9 +185,68 @@ body.app {
 
 .media-placeholder {
   width: 100%;
-  height: 420px;
+  height: 800px;
   background: #d9d9d9;
   border-radius: 5px;
+  flex-shrink: 0;
+}
+
+/* Media plus description above layout */
+.slide.layout--media-above .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-top: 40px;
+}
+
+.slide.layout--media-above .overline {
+  order: 1;
+  margin-bottom: 0;
+}
+
+.slide.layout--media-above .heading {
+  order: 2;
+  margin-bottom: 0;
+}
+
+.slide.layout--media-above .media-placeholder {
+  order: 3;
+  margin-bottom: 0;
+  margin-top: 0;
+  flex: 1 1 auto; /* Grow to fill available space */
+  min-height: 450px; /* Minimum height */
+  max-height: calc(771px - 360px); /* Canvas height (771px) minus padding (104px), overline (~20px), heading (~43px), gaps (~72px), description (~120px) */
+}
+
+.slide.layout--media-above .media-description {
+  order: 4;
+  margin-top: 0;
+  margin-bottom: 0;
+  max-width: 100%;
+  line-height: 1.6;
+  font-size: 16px;
+  flex-shrink: 0; /* Don't shrink description */
+}
+
+.slide.layout--media-above .points {
+  order: 4;
+  margin-top: 0;
+  display: none; /* Hide points on media slides */
+}
+
+/* Dark mode for media placeholder */
+.slide--dark .media-placeholder,
+.slide__canvas--dark .media-placeholder {
+  background: #2a2a2a;
+  border: 1px solid #3a3638;
+}
+
+/* Dark mode for media description */
+.slide--dark .media-description,
+.slide__canvas--dark .media-description {
+  color: #EEEEEE !important;
 }
 
 .slide__label {
@@ -551,17 +610,6 @@ body.app {
   color: #657082;
 }
 
-/* responsive fallbacks */
-@media (max-width: 1200px) {
-  .slide:has(.points .point:nth-of-type(3):nth-last-of-type(1)) .points {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 740px) {
-  .slide:has(.points) .points {
-    grid-template-columns: 1fr !important;
-  }
-}
 
 /* subtle card vibe for multi-point grids while keeping body styles */
 .slide:has(.points .point:nth-of-type(2)) .points .point,
