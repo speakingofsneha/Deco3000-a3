@@ -1,5 +1,7 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Set
 import logging
+import re
+from difflib import SequenceMatcher
 
 from .models import OutlineItem, BulletPoint, Chunk
 from .chunking_embedding import ChunkingEmbeddingService
@@ -11,13 +13,14 @@ class RAGSystem:
     def __init__(self):
         self.llm_service = get_llm_service()
         self.chunking_service = ChunkingEmbeddingService()
+        self.all_seen_bullets = []  # Track all bullets to check for duplicates
     
     def generate_bullets_for_outline_item(
         self, 
         outline_item: OutlineItem, 
         vector_store, 
-        top_k: int = 5,
-        max_bullets: int = 4
+        top_k: int = 8,
+        max_bullets: int = 5
     ) -> List[BulletPoint]:
         """Generate bullet points for an outline item using RAG"""
         
@@ -26,46 +29,54 @@ class RAGSystem:
         similar_chunks = self.chunking_service.search_similar_chunks(query, top_k)
         
         if not similar_chunks:
-            logger.warning(f"No similar chunks found for outline item: {outline_item.title}")
+            logger.warning(f"No chunks found for: {outline_item.title}")
             return []
         
-        # Prepare context from retrieved chunks
+        # Prepare context
         context = self._prepare_context(similar_chunks)
-        chunk_ids = [chunk.id for chunk, _ in similar_chunks]
         
-        # Let the LLM determine how many bullets based on content
-        bullets = self._generate_bullets_with_llm(
+        # Generate bullets with LLM
+        bullets_text = self._generate_bullets_with_llm(
             outline_item, 
             context, 
-            max_bullets  # This is now a maximum, not a fixed number
+            max_bullets
         )
         
-        # Add provenance information with page numbers
+        # Parse and clean bullets
+        bullets = self._parse_bullets(bullets_text)
+        
+        # Remove duplicates and low quality
+        bullets = self._filter_bullets(bullets)
+        
+        # Limit to max
+        bullets = bullets[:max_bullets]
+        
+        # Add provenance
+        page_numbers = sorted(list(set([chunk.page_number for chunk, _ in similar_chunks])))
+        provenance_pages = [f"Page {page}" for page in page_numbers]
+        
         bullets_with_provenance = []
-        for bullet in bullets:
-            # Extract page numbers from chunks instead of chunk IDs
-            page_numbers = list(set([chunk.page_number for chunk, _ in similar_chunks]))
-            page_numbers.sort()
-            provenance_pages = [f"Page {page}" for page in page_numbers]
-            
+        for bullet_text in bullets:
             bullet_with_provenance = BulletPoint(
-                text=bullet,
+                text=bullet_text,
                 provenance=provenance_pages,
-                confidence=0.8  # Default confidence
+                confidence=0.85
             )
             bullets_with_provenance.append(bullet_with_provenance)
+            self.all_seen_bullets.append(bullet_text.lower())
         
+        logger.info(f"  Generated {len(bullets_with_provenance)} bullets for: {outline_item.title}")
         return bullets_with_provenance
     
     def _prepare_context(self, similar_chunks: List[Tuple[Chunk, float]]) -> str:
-        """Prepare context from retrieved chunks"""
+        """Prepare context from chunks"""
         context_parts = []
         
-        for chunk, score in similar_chunks:
-            context_part = f"Source: {chunk.metadata.get('section_title', 'Unknown')} (Page {chunk.page_number})\n"
-            context_part += f"Content: {chunk.text}\n"
-            context_part += f"Relevance Score: {score:.3f}\n"
-            context_part += "---\n"
+        for i, (chunk, score) in enumerate(similar_chunks[:5], 1):  # Use top 5
+            section = chunk.metadata.get('section_title', 'Unknown')
+            page = chunk.page_number
+            
+            context_part = f"[Source {i}] {section} (Page {page}):\n{chunk.text}\n---\n"
             context_parts.append(context_part)
         
         return "\n".join(context_parts)
@@ -75,168 +86,166 @@ class RAGSystem:
         outline_item: OutlineItem, 
         context: str, 
         max_bullets: int
-    ) -> List[str]:
-        """Generate bullet points using LLM"""
+    ) -> str:
+        """Generate bullets using LLM"""
         
-        prompt = self._create_bullet_generation_prompt(
-            outline_item, 
-            context, 
-            max_bullets
-        )
+        prompt = f"""Create {max_bullets} bullet points for a slide titled "{outline_item.title}".
+
+SOURCE MATERIAL:
+{context}
+
+INSTRUCTIONS:
+1. Extract 3-5 specific insights from the source material
+2. Each bullet should be 12-25 words
+3. Focus on concrete details, user insights, or design decisions
+4. Avoid generic statements
+5. Each bullet must provide unique information
+6. Use clear, professional language
+
+Format each bullet on a new line starting with "- "
+"""
         
         try:
             messages = [
                 {
                     "role": "system", 
-                    "content": "You are an expert at creating compelling slide deck content. Your task is to transform source material into crisp, impactful bullet points that work perfectly for presentations. Focus on clarity, impact, and delivering the key message effectively."
+                    "content": "You are an expert at creating presentation slides. Extract specific, concrete information and present it clearly."
                 },
                 {"role": "user", "content": prompt}
             ]
             
-            bullets_text = self.llm_service.generate_chat_completion(
+            response = self.llm_service.generate_chat_completion(
                 messages, 
                 max_tokens=1000, 
                 temperature=0.5
             )
             
-            bullets = self._parse_bullets_response(bullets_text)
-            
-            return bullets[:max_bullets]  # Limit to max_bullets
+            return response
             
         except Exception as e:
             logger.error(f"Error generating bullets: {str(e)}")
-            return [f"Key information about {outline_item.title.lower()}"]
+            return ""
     
-    def _create_bullet_generation_prompt(
-        self, 
-        outline_item: OutlineItem, 
-        context: str, 
-        max_bullets: int
-    ) -> str:
-        """Create prompt for bullet point generation"""
-        return f"""
-Create bullet points for a design presentation about "{outline_item.title}".
-
-Source Material:
-{context}
-
-Instructions:
-1. Create 3-4 concise bullet points that capture the key insights
-2. Each bullet should be short and clear - maximum 15 words
-3. Focus on the most important findings or insights from the design process
-4. Use direct, professional language
-5. Highlight key user insights, design decisions, or technical details
-6. Make each bullet informative and engaging
-7. Prioritize concrete findings over general statements
-8. Each bullet should stand alone and be easily readable
-
-Format as a simple list with bullet points using "-" or "•" symbols.
-Do not include any introductory text, explanations, or meta-commentary.
-"""
-    
-    def _parse_bullets_response(self, response_text: str) -> List[str]:
-        """Parse bullet points from LLM response"""
-        lines = response_text.split('\n')
+    def _parse_bullets(self, response_text: str) -> List[str]:
+        """Parse bullets from LLM response"""
+        lines = response_text.strip().split('\n')
         bullets = []
         
         for line in lines:
             line = line.strip()
-            if line and (line.startswith('-') or line.startswith('•') or line.startswith('*')):
-                # Remove bullet symbol and clean up
-                bullet = line[1:].strip()
-                if bullet and self._is_valid_bullet(bullet):
-                    bullets.append(bullet)
-            elif line and not line.startswith('Title:') and not line.startswith('Description:'):
-                # Sometimes bullets don't have symbols
-                if len(line) > 10 and self._is_valid_bullet(line):  # Avoid very short lines
-                    bullets.append(line)
+            
+            if not line:
+                continue
+            
+            # Remove bullet symbols
+            for symbol in ['-', '•', '*', '○', '1.', '2.', '3.', '4.', '5.']:
+                if line.startswith(symbol):
+                    line = line[len(symbol):].strip()
+                    break
+            
+            # Skip headers or instructions
+            if ':' in line[:20] or len(line) < 15:
+                continue
+            
+            # Skip meta-text
+            skip_words = ['bullet point', 'slide', 'here are', 'following']
+            if any(word in line.lower()[:30] for word in skip_words):
+                continue
+            
+            if len(line) > 15 and len(line) < 300:
+                bullets.append(line)
         
         return bullets
     
-    def _is_valid_bullet(self, bullet: str) -> bool:
-        """Check if a bullet point is valid (not generic placeholder text)"""
-        # Generic phrases to filter out
-        generic_phrases = [
-            "here are the",
-            "key information about",
-            "important points",
-            "this section covers",
-            "main topics include",
-            "key concepts",
-            "the following",
-            "based on the",
-            "as mentioned",
-            "as discussed",
-            "in summary",
-            "to summarize",
-            "bullet points for",
-            "presentation slide",
-            "concise bullet points",
-            "here are",
-            "the key",
-            "main points",
-            "important information",
-            "key findings",
-            "design process",
-            "user experience",
-            "task management",
-            "applications often",
-            "current system"
-        ]
+    def _filter_bullets(self, bullets: List[str]) -> List[str]:
+        """Filter out duplicates and low quality bullets"""
+        filtered = []
+        
+        for bullet in bullets:
+            bullet_lower = bullet.lower()
+            
+            # Check if too similar to already seen bullets
+            is_duplicate = False
+            for seen in self.all_seen_bullets:
+                similarity = SequenceMatcher(None, bullet_lower, seen).ratio()
+                if similarity > 0.75:  # 75% similar
+                    is_duplicate = True
+                    break
+            
+            if is_duplicate:
+                continue
+            
+            # Check if too similar to bullets in current list
+            is_duplicate_local = False
+            for existing in filtered:
+                similarity = SequenceMatcher(None, bullet_lower, existing.lower()).ratio()
+                if similarity > 0.75:
+                    is_duplicate_local = True
+                    break
+            
+            if is_duplicate_local:
+                continue
+            
+            # Check quality
+            if self._is_good_bullet(bullet):
+                filtered.append(bullet)
+        
+        return filtered
+    
+    def _is_good_bullet(self, bullet: str) -> bool:
+        """Check if bullet is good quality"""
         
         bullet_lower = bullet.lower()
         
-        # Check if it's too generic
-        for phrase in generic_phrases:
+        # Reject generic phrases
+        bad_phrases = [
+            'key information', 'main points', 'this section', 
+            'the following', 'as mentioned', 'provides information'
+        ]
+        
+        for phrase in bad_phrases:
             if phrase in bullet_lower:
                 return False
         
-        # Check if it's too short or too long
-        if len(bullet) < 15 or len(bullet) > 300:
+        # Length check
+        if len(bullet) < 20 or len(bullet) > 300:
             return False
         
-        # Check if it contains specific content indicators
-        specific_indicators = [
-            "specific", "example", "data", "result", "finding", "study", "research",
-            "analysis", "method", "approach", "technique", "process", "system",
-            "application", "implementation", "development", "design", "model",
-            "framework", "algorithm", "protocol", "standard", "guideline",
-            "user", "task", "interface", "feature", "function", "clicking", "checkbox",
-            "completed", "focused", "mapping", "frictionless", "chiming", "accomplishment",
-            "pending", "notes", "field", "status", "list", "create", "type", "enter",
-            "swipe", "mobile", "desktop", "wireframe", "testing", "iteration"
+        # Should have some specific content
+        good_words = [
+            'user', 'task', 'design', 'application', 'feature',
+            'research', 'problem', 'solution', 'interface', 'experience',
+            'specific', 'focused', 'simple', 'easy', 'quick'
         ]
         
-        # If it contains specific indicators, it's likely good content
-        if any(indicator in bullet_lower for indicator in specific_indicators):
-            return True
+        has_content = any(word in bullet_lower for word in good_words)
         
-        # If it's a reasonable length and doesn't contain generic phrases, accept it
-        return True
+        return has_content
     
     def generate_comprehensive_bullets(
         self, 
         outline_items: List[OutlineItem], 
         vector_store,
-        top_k: int = 5,
-        max_bullets_per_item: int = 4
+        top_k: int = 8,
+        max_bullets_per_item: int = 5
     ) -> Dict[str, List[BulletPoint]]:
-        """Generate bullets for all outline items based on content availability"""
+        """Generate bullets for all outline items"""
+        
+        # Reset for new deck
+        self.all_seen_bullets = []
         
         results = {}
         
         for outline_item in outline_items:
             logger.info(f"Generating bullets for: {outline_item.title}")
             
-            # Let the system determine how many bullets based on content
             bullets = self.generate_bullets_for_outline_item(
                 outline_item,
                 vector_store,
                 top_k,
-                max_bullets_per_item  # This is now a maximum, not a fixed number
+                max_bullets_per_item
             )
             
             results[outline_item.title] = bullets
-            logger.info(f"Generated {len(bullets)} bullets for {outline_item.title}")
         
         return results

@@ -34,48 +34,66 @@ class PDFProcessingService:
         
         try:
             logger.info(f"Starting PDF processing: {request.pdf_path}")
+            logger.info("="*60)
             
             # Step 1: Parse PDF
             logger.info("Step 1: Parsing PDF...")
             pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
             pdf_metadata = self.pdf_parser.extract_metadata(request.pdf_path)
             
+            logger.info(f"  ✓ Title: {pdf_structure.title}")
+            logger.info(f"  ✓ Sections found: {len(pdf_structure.sections)}")
+            logger.info(f"  ✓ Total pages: {pdf_structure.total_pages}")
+            
             # Step 2: Chunk and embed
-            logger.info("Step 2: Chunking and embedding...")
-            # Use smaller chunks with more overlap for better content capture
-            effective_chunk_size = min(request.chunk_size, 400)
-            effective_overlap = max(request.overlap, 100)
+            logger.info("\nStep 2: Chunking and embedding...")
+            
+            # Use optimized chunk settings
+            chunk_size = min(request.chunk_size, 400)
+            overlap = max(request.overlap, 100)
+            
+            logger.info(f"  Using chunk_size={chunk_size}, overlap={overlap}")
             
             chunks = self.chunking_service.chunk_text(
                 pdf_structure, 
-                effective_chunk_size, 
-                effective_overlap
+                chunk_size, 
+                overlap
             )
+            
+            logger.info(f"  ✓ Created {len(chunks)} chunks")
             
             if len(chunks) > request.max_chunks:
                 chunks = chunks[:request.max_chunks]
-                logger.warning(f"Limited chunks to {request.max_chunks}")
+                logger.warning(f"  ! Limited to {request.max_chunks} chunks")
             
             vector_store = self.chunking_service.create_embeddings(chunks)
+            logger.info(f"  ✓ Created vector store")
             
             # Step 3: Generate outline
-            logger.info("Step 3: Generating outline...")
+            logger.info("\nStep 3: Generating outline...")
             outline_items = self.outline_generator.generate_outline(
                 pdf_structure.title, 
-                chunks
+                chunks,
+                max_sections=8
             )
             
+            logger.info(f"  ✓ Created {len(outline_items)} sections")
+            
             # Step 4: Generate bullets with RAG
-            logger.info("Step 4: Generating bullets with RAG...")
-            # Ensure RAG system uses the same chunking service
+            logger.info("\nStep 4: Generating bullets...")
             self.rag_system.chunking_service = self.chunking_service
             bullets_data = self.rag_system.generate_comprehensive_bullets(
                 outline_items, 
-                vector_store
+                vector_store,
+                top_k=8,
+                max_bullets_per_item=5
             )
             
+            total_bullets = sum(len(bullets) for bullets in bullets_data.values())
+            logger.info(f"  ✓ Generated {total_bullets} total bullets")
+            
             # Step 5: Generate slide deck
-            logger.info("Step 5: Generating slide deck...")
+            logger.info("\nStep 5: Generating slide deck...")
             slide_deck = self.slide_generator.generate_slide_deck(
                 pdf_structure.title,
                 outline_items,
@@ -84,12 +102,18 @@ class PDFProcessingService:
                 pdf_metadata
             )
             
+            logger.info(f"  ✓ Created {len(slide_deck.slides)} slides")
+            
             # Save outputs
             self._save_outputs(slide_deck, vector_store, request.pdf_path)
             
             processing_time = time.time() - start_time
             
-            logger.info(f"PDF processing completed in {processing_time:.2f} seconds")
+            logger.info("="*60)
+            logger.info(f"✓ SUCCESS! Completed in {processing_time:.2f} seconds")
+            logger.info(f"  - Total slides: {len(slide_deck.slides)}")
+            logger.info(f"  - Total bullets: {sum(len(s.content) for s in slide_deck.slides)}")
+            logger.info("="*60)
             
             return PDFProcessingResponse(
                 success=True,
@@ -100,7 +124,7 @@ class PDFProcessingService:
             
         except Exception as e:
             processing_time = time.time() - start_time
-            logger.error(f"Error processing PDF: {str(e)}")
+            logger.error(f"✗ ERROR: {str(e)}", exc_info=True)
             
             return PDFProcessingResponse(
                 success=False,
@@ -115,12 +139,12 @@ class PDFProcessingService:
         # Save slide deck JSON
         json_path = self.output_dir / f"{pdf_name}_slides.json"
         self.slide_generator.export_to_json(slide_deck, str(json_path))
+        logger.info(f"\n  ✓ Saved: {json_path}")
         
         # Save vector store
         vector_store_path = self.vector_store_dir / pdf_name
         self.chunking_service.save_vector_store(str(vector_store_path))
-        
-        logger.info(f"Outputs saved: {json_path}, {vector_store_path}")
+        logger.info(f"  ✓ Saved: {vector_store_path}")
     
     def load_existing_slide_deck(self, pdf_name: str) -> Optional[SlideDeck]:
         """Load existing slide deck if available"""

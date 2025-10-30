@@ -11,89 +11,107 @@
         "slide_number": 1,
         "is_title": true,
         "source_pdf": "anu.pdf",
-        "created_date": "2025-10-28"
+        "created_date": "2025-10-30"
       }
     },
     {
       "id": "slide_2",
       "type": "content",
-      "title": "Advanced Web Design",
+      "title": "General (Part 1)",
       "content": [
         {
-          "text": "Essential interactions in web-apps should be prioritized for usability testing and iteration before high-fidelity prototyping.",
+          "text": "Users experiment with multiple task management applications but struggle to maintain long-term usage due to overwhelming customisation options and lack of tangible accomplishments.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Simple, intuitive design is crucial for reducing user friction; e.g., seamless task creation with minimal clicks.",
+          "text": "The current state of task management apps is perceived as rigid, inhumane, and anxiety-inducing, leading users to seek a re-design that prioritises a basic, fast, and delightful experience.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
+        },
+        {
+          "text": "Users crave clear separation between different categories of tasks for organisation and subtle nudges to complete tasks rather than aggressive notifications.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The current setup of task management apps often leads to feelings of overwhelm, making it difficult for users to maintain their sense of accomplishment and motivating them to return to the app.",
+          "provenance": [],
+          "confidence": 0.85
         }
       ],
       "provenance": [
         "Page 1",
-        "Page 5",
-        "Page 7"
+        "Page 2",
+        "Page 3",
+        "Page 4"
       ],
       "metadata": {
         "slide_number": 2,
-        "outline_item": "Advanced Web Design",
+        "outline_item": "General",
         "part": 1,
-        "total_parts": 1
+        "total_parts": 2
       }
     },
     {
       "id": "slide_3",
       "type": "content",
-      "title": "Task Management Web-App",
+      "title": "General (Part 2)",
       "content": [
         {
-          "text": "Customization options can be overwhelming, leading to mental exhaustion and anxiety.",
+          "text": "To create a more effective solution, it's essential to ideate the interactions that might look like, considering the visual design and user experience, to provide a sense of accomplishment when tasks are completed.",
           "provenance": [],
-          "confidence": 0.8
-        },
-        {
-          "text": "Tasks often disappear without a sense of accomplishment or reward, making it feel like progress isn't being made.",
-          "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         }
       ],
       "provenance": [
         "Page 1",
+        "Page 2",
         "Page 3",
         "Page 4"
       ],
       "metadata": {
         "slide_number": 3,
-        "outline_item": "Task Management Web-App",
-        "part": 1,
-        "total_parts": 1
+        "outline_item": "General",
+        "part": 2,
+        "total_parts": 2
       }
     },
     {
       "id": "slide_4",
       "type": "content",
-      "title": "Design Process",
+      "title": "User flow",
       "content": [
         {
-          "text": "Overcomplicated features and extensive customization options can be overwhelming and mentally exhausting.",
+          "text": "Users type their name in the text field as part of onboarding, which is then updated to replace the “y/n” prompt.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Users crave a re-designed approach that prioritizes simplicity, ease-of-use, and tangible progress.",
+          "text": "Tapping outside the task card takes the user back to home, similar to the desktop experience.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
+        },
+        {
+          "text": "Users can add due dates for tasks after creation by using the date picker feature.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Clicking on a task opens a drop-down menu that allows users to move the task into another list or delete the task.",
+          "provenance": [],
+          "confidence": 0.85
         }
       ],
       "provenance": [
-        "Page 2",
-        "Page 3",
-        "Page 5"
+        "Page 1",
+        "Page 10",
+        "Page 7",
+        "Page 8"
       ],
       "metadata": {
         "slide_number": 4,
-        "outline_item": "Design Process",
+        "outline_item": "User flow",
         "part": 1,
         "total_parts": 1
       }
@@ -101,60 +119,51 @@
     {
       "id": "slide_5",
       "type": "content",
-      "title": "empathise",
+      "title": "Empathise (Part 1)",
       "content": [
         {
-          "text": "Users crave a stripped-down, humane to-do list with no overcomplications.",
+          "text": "Task management applications often promise to be all-in-one solutions, leading to complexity and a high learning curve.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Easy-to-use app with no learning curve and subtle nudges for task completion.",
+          "text": "Users may struggle to use these apps beyond a few weeks due to overwhelming customization options and lack of tangible accomplishments.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Clear categorisation of tasks is essential for organisation and productivity.",
+          "text": "The initial excitement from new features and interfaces wears off quickly, leaving users feeling mentally exhausted and anxious.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Current to-do systems are rigid and anxiety-inducing; empathetic design is needed.",
+          "text": "The current design of task management applications can be seen as shallow copies of the same rigid template, inducing anxiety in users.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         }
       ],
       "provenance": [
         "Page 1",
         "Page 2",
-        "Page 5"
+        "Page 3",
+        "Page 4"
       ],
       "metadata": {
         "slide_number": 5,
-        "outline_item": "empathise",
+        "outline_item": "Empathise",
         "part": 1,
-        "total_parts": 1
+        "total_parts": 2
       }
     },
     {
       "id": "slide_6",
       "type": "content",
-      "title": "Target Audience",
+      "title": "Empathise (Part 2)",
       "content": [
         {
-          "text": "Target audience seeks a stripped-down, humane to-do list that gets the job done without exhaustion.",
+          "text": "Users crave a sense of accomplishment when completing tasks, but this is often lacking in digital systems, leading to feelings of emptiness.",
           "provenance": [],
-          "confidence": 0.8
-        },
-        {
-          "text": "Individuals crave clear separation of tasks for organization and subtle nudges for completion rather than aggressive notifications.",
-          "provenance": [],
-          "confidence": 0.8
-        },
-        {
-          "text": "Current to-do lists induce anxiety; users desire a re-design to alleviate this stress and foster productivity.",
-          "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         }
       ],
       "provenance": [
@@ -165,47 +174,241 @@
       ],
       "metadata": {
         "slide_number": 6,
-        "outline_item": "Target Audience",
-        "part": 1,
-        "total_parts": 1
+        "outline_item": "Empathise",
+        "part": 2,
+        "total_parts": 2
       }
     },
     {
       "id": "slide_7",
       "type": "content",
-      "title": "User flow",
+      "title": "Decision Fatigue:",
       "content": [
         {
-          "text": "Users type their name in the onboarding process to replace the “y/n” prompt.",
+          "text": "The extensive customization options in current task management applications can be overwhelming and mentally exhausting.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "The list panel slides in and can be removed by swiping left on mobile devices.",
+          "text": "Current task management systems often lack tangible accomplishments, leading to feelings of frustration and anxiety.",
           "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         },
         {
-          "text": "Tapping outside a task card takes users back to home, similar to desktop experience.",
+          "text": "Decision fatigue is caused by the lack of intuitive design in existing task management tools, leading to mental exhaustion.",
           "provenance": [],
-          "confidence": 0.8
-        },
-        {
-          "text": "Wireframes will undergo usability testing before high-fidelity prototyping and development.",
-          "provenance": [],
-          "confidence": 0.8
+          "confidence": 0.85
         }
       ],
       "provenance": [
         "Page 1",
-        "Page 10",
-        "Page 7"
+        "Page 3",
+        "Page 4"
       ],
       "metadata": {
         "slide_number": 7,
-        "outline_item": "User flow",
+        "outline_item": "Decision Fatigue:",
         "part": 1,
         "total_parts": 1
+      }
+    },
+    {
+      "id": "slide_8",
+      "type": "content",
+      "title": "Conceptualise",
+      "content": [
+        {
+          "text": "The app should offer a basic, fast, and delightful experience for managing tasks, prioritizing ease of use.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "To incentivize users to return to the app, improve their sense of accomplishment when completing tasks and provide clear separation for different task categories.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Users want subtle nudges to complete tasks, rather than aggressive or anxiety-inducing notifications, allowing them to feel a sense of control.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "These bullets capture specific insights from the source material, focusing on concrete details and design decisions.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 3",
+        "Page 4"
+      ],
+      "metadata": {
+        "slide_number": 8,
+        "outline_item": "Conceptualise",
+        "part": 1,
+        "total_parts": 1
+      }
+    },
+    {
+      "id": "slide_9",
+      "type": "content",
+      "title": "Testing And Will Be Iterated",
+      "content": [
+        {
+          "text": "The user flow before high-fidelity prototyping and development focuses on essential interactions due to space constraints.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Frictionless task creation allows users to simply type and enter tasks without extra clicks, reducing user friction.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The act of crossing out completed tasks in pen-and-paper lists provides a tangible artifact demonstrating progress towards a goal, highlighting the importance of this behavior in to-do apps.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 2",
+        "Page 3",
+        "Page 5",
+        "Page 7"
+      ],
+      "metadata": {
+        "slide_number": 9,
+        "outline_item": "Testing And Will Be Iterated",
+        "part": 1,
+        "total_parts": 1
+      }
+    },
+    {
+      "id": "slide_10",
+      "type": "content",
+      "title": "Prototype (Part 1)",
+      "content": [
+        {
+          "text": "Users just need to type and enter to create tasks, aiming for frictionless task creation as easy as sending a text.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "A small tag displaying the number of days left until the task's deadline provides users with relevant information instead of showing due dates.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The design includes a big text field for users to store notes related to specific tasks, allowing for efficient note-taking and organization.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The user flow focuses on essential interactions, showcasing only the most critical parts of the web-app due to space constraints.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 3",
+        "Page 4",
+        "Page 8"
+      ],
+      "metadata": {
+        "slide_number": 10,
+        "outline_item": "Prototype",
+        "part": 1,
+        "total_parts": 2
+      }
+    },
+    {
+      "id": "slide_11",
+      "type": "content",
+      "title": "Prototype (Part 2)",
+      "content": [
+        {
+          "text": "Initially, users may find task management applications overwhelming, but by simplifying the process and hiding complexity, users can establish a consistent habit of using the app.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 3",
+        "Page 4",
+        "Page 8"
+      ],
+      "metadata": {
+        "slide_number": 11,
+        "outline_item": "Prototype",
+        "part": 2,
+        "total_parts": 2
+      }
+    },
+    {
+      "id": "slide_12",
+      "type": "content",
+      "title": "Design Goal 3) (Part 1)",
+      "content": [
+        {
+          "text": "Users can create lists frictionlessly by simply typing and entering, with their name updated to personalize the experience.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The list panel is collapsible to provide a more focused view of tasks, with the current list highlighted for mapping purposes.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Clicking the cross icon or outside the task card closes the task view, providing an intuitive way to navigate away from a task.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Users can choose between displaying due dates or number of days left for each task, offering flexibility and customization options.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 4",
+        "Page 5",
+        "Page 8"
+      ],
+      "metadata": {
+        "slide_number": 12,
+        "outline_item": "Design Goal 3)",
+        "part": 1,
+        "total_parts": 2
+      }
+    },
+    {
+      "id": "slide_13",
+      "type": "content",
+      "title": "Design Goal 3) (Part 2)",
+      "content": [
+        {
+          "text": "Completed tasks remain in place, with a chiming sound playing upon completion to enhance the sense of accomplishment and satisfaction.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 4",
+        "Page 5",
+        "Page 8"
+      ],
+      "metadata": {
+        "slide_number": 13,
+        "outline_item": "Design Goal 3)",
+        "part": 2,
+        "total_parts": 2
       }
     }
   ],
@@ -219,6 +422,6 @@
     "modification_date": "D:20251028021255Z",
     "page_count": 10
   },
-  "created_at": "2025-10-28T10:05:33.104797",
+  "created_at": "2025-10-30T08:17:02.917162",
   "source_pdf": "anu.pdf"
 }
