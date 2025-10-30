@@ -1,184 +1,159 @@
-# reframe :D
+# Reframe
 
-## Installation
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd pdf-to-slides
-```
+Reframe is an AI-powered tool that transforms PDF documents into structured case study decks. Give it a report, paper, or any document in PDF format, and it will automatically create a presentation-ready slide deck with key points, organized sections, and proper citations.
 
-2. Install Python dependencies:
+## What It Does
+
+When you have a long PDF document?maybe a research paper, a report, or a case study?Reframe reads through it, understands the content, and creates a slide deck that captures the most important information. It does this by:
+
+1. **Reading your PDF** - Extracts text and identifies the structure
+2. **Understanding the content** - Uses AI to understand what the document is about
+3. **Creating an outline** - Generates a logical structure for your slides
+4. **Finding key points** - Uses retrieval-augmented generation (RAG) to pull out important information from different parts of the document
+5. **Building slides** - Organizes everything into a clean, structured slide deck
+
+The result is a JSON file that you can view in your browser using the included slide viewer, or use programmatically in your own applications.
+
+## Requirements
+
+- **Python 3.8 or higher**
+- **Ollama** - A free, local AI server that runs on your computer
+- **At least 8GB of RAM** (to run the AI model)
+
+## Quick Start
+
+### 1. Install Python Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Install and set up Ollama (free local LLM):
+### 2. Set Up Ollama
+
+Ollama lets you run AI models locally on your computer, completely free and private.
+
+**Install Ollama:**
 ```bash
-# Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
+```
 
-# Start Ollama service
+**Start Ollama:**
+```bash
 ollama serve
+```
 
-# Pull Llama 3 model (in a new terminal)
+**Download the AI model** (in a new terminal):
+```bash
 ollama pull llama3
 ```
 
-4. Test the installation:
+This will download the Llama 3 model (about 4GB). The download only happens once.
+
+### 3. Test Everything Works
+
 ```bash
 python test_system.py
 ```
 
-## Quick Start
+This checks that all the components are set up correctly.
 
-1. **Test the system**:
+### 4. Process Your First PDF
+
 ```bash
-python test_system.py
+python main.py process your-document.pdf
 ```
 
-2. **Process a PDF file**:
+That's it! Reframe will process your PDF and save a slide deck as `outputs/your-document.json`.
+
+### 5. View Your Slides
+
+Open `ui/deck.html` in your browser (using a local web server if needed). It will automatically load the most recently processed slide deck, or you can specify a file with `?file=outputs/your-document.json`.
+
+## Usage
+
+### Basic Processing
+
 ```bash
 python main.py process document.pdf
 ```
 
-3. **Process with custom parameters**:
+### Custom Options
+
+You can adjust how Reframe processes your document:
+
 ```bash
 python main.py process document.pdf --max-chunks 500 --chunk-size 300 --overlap 25
 ```
 
-4. **List slides from generated deck**:
+- `--max-chunks`: How many text segments to analyze (default: 1000)
+- `--chunk-size`: Size of each text segment (default: 500)
+- `--overlap`: How much text overlaps between segments (default: 50)
+
+### View Statistics
+
+See details about a generated slide deck:
+
 ```bash
-python main.py list-slides document_slides.json
+python main.py stats outputs/document.json
 ```
 
-5. **Show statistics**:
-```bash
-python main.py stats document_slides.json
-```
 
-6. **Start the API server**:
-```bash
-python main.py serve --host 0.0.0.0 --port 8000
-```
+## How It Works
+Reframe processes documents in five main steps:
+1. **PDF Parsing** - Extracts all text and basic structure from your PDF
+2. **Text Chunking** - Breaks the document into overlapping segments so nothing gets missed
+3. **Embedding** - Converts text into numerical vectors that capture meaning (stored using FAISS for fast searching)
+4. **Outline Generation** - Uses AI to create a logical structure based on the entire document
+5. **Content Generation** - For each section in the outline, searches for relevant information in your document and generates bullet points with citations
 
-### API Usage
-1. **Start the server**:
-```bash
-python main.py serve
-```
+The whole process happens locally on your computer?your documents never leave your machine.
 
-2. **Upload and process a PDF**:
-```bash
-# Upload PDF
-curl -X POST "http://localhost:8000/upload" -F "file=@document.pdf"
-
-# Process PDF
-curl -X POST "http://localhost:8000/process" \
-  -F "pdf_path=uploads/document.pdf" \
-  -F "max_chunks=1000" \
-  -F "chunk_size=500" \
-  -F "overlap=50"
-```
-
-3. **Get slide deck**:
-```bash
-curl "http://localhost:8000/slides/document"
-```
-
-4. **Download JSON**:
-```bash
-curl "http://localhost:8000/download/document" -o document_slides.json
-```
-
-## Architecture
-The application follows a modular architecture with the following components:
-
-### Core Modules
-- **`pdf_parser.py`**: PDF text extraction and structure analysis
-- **`chunking_embedding.py`**: Text chunking and FAISS vector storage
-- **`outline_generator.py`**: AI-powered outline generation
-- **`rag_system.py`**: Retrieval-Augmented Generation for bullet points
-- **`slide_generator.py`**: JSON slide deck creation
-- **`processing_service.py`**: Main processing pipeline orchestration
-
-### API Layer
-- **`api.py`**: FastAPI application with REST endpoints
-- **`cli.py`**: Command-line interface using Typer
-- **`models.py`**: Pydantic data models
-
-## Processing Pipeline
-1. **PDF Ingestion**: Parse PDF and extract text with basic structure
-2. **Chunking**: Split text into overlapping chunks with unique IDs
-3. **Embedding**: Generate vector embeddings and store in FAISS index
-4. **Outline Generation**: Create comprehensive outline using global pass
-5. **RAG Processing**: For each outline item, retrieve relevant chunks and generate bullets
-6. **Slide Generation**: Create structured JSON slide deck
-
-### Prerequisites
-- **Python 3.8+**: Required for all functionality
-- **Ollama**: Free local LLM server (https://ollama.ai/)
-- **Llama 3**: Free open-source language model
-
-### CLI Options
-- `--max-chunks`: Maximum number of chunks to process (default: 1000)
-- `--chunk-size`: Size of each text chunk (default: 500)
-- `--overlap`: Overlap between chunks (default: 50)
-- `--output`: Output directory for generated files
-- `--verbose`: Enable verbose logging
-
-### System Requirements
-- **RAM**: At least 8GB recommended (for Llama 3)
-- **Storage**: ~4GB for Llama 3 model
-- **CPU**: Any modern processor (GPU optional but recommended)
 
 ## Output Format
-The application generates a JSON slide deck with the following structure:
-
+Reframe creates a JSON file with this structure:
 ```json
 {
-  "title": "Document Title",
+  "title": "Your Document Title",
   "slides": [
     {
       "id": "slide_1",
       "type": "title",
-      "title": "Document Title",
+      "title": "Your Document Title",
+      "content": []
+    },
+    {
+      "id": "slide_2",
+      "type": "content",
+      "title": "Introduction",
       "content": [
         {
-          "text": "Generated from: document.pdf",
-          "provenance": [],
-          "confidence": 1.0
+          "text": "Key point from your document",
+          "confidence": 0.95
         }
       ],
-      "metadata": {
-        "slide_number": 1,
-        "is_title": true
-      }
+      "provenance": ["Page 1", "Page 2"]
     }
   ],
-  "metadata": {},
-  "created_at": "2024-01-01T00:00:00",
-  "source_pdf": "document.pdf"
+  "source_pdf": "your-document.pdf",
+  "created_at": "2024-01-01T00:00:00"
 }
 ```
 
-## API Endpoints
-- `GET /`: Root endpoint with API information
-- `GET /health`: Health check
-- `POST /upload`: Upload PDF file
-- `POST /process`: Process uploaded PDF
-- `GET /status/{pdf_name}`: Get processing status
-- `GET /download/{pdf_name}`: Download slide deck JSON
-- `GET /slides/{pdf_name}`: Get slide deck data
-- `GET /slides/{pdf_name}/stats`: Get slide deck statistics
+## Troubleshooting
+**Ollama won't start?** Make sure you've installed it correctly and check that no other application is using port 11434.
+**Out of memory errors?** Try reducing `--max-chunks` or `--chunk-size` to process smaller amounts of text at once.
+**Slides look incomplete?** Increase the `--max-chunks` parameter to analyze more of the document.
 
-## Dependencies
-- **FastAPI**: Web framework for API
-- **PyMuPDF**: PDF parsing
-- **sentence-transformers**: Text embeddings
-- **faiss-cpu**: Vector similarity search
-- **Ollama**: Free local LLM server
-- **Llama 3**: Free open-source language model
-- **Typer**: CLI framework
-- **Rich**: Terminal formatting
-- **Pydantic**: Data validation
 
+## Project Structure
+- `src/` - Core processing modules
+  - `pdf_parser.py` - PDF text extraction
+  - `chunking_embedding.py` - Text chunking and vector embeddings
+  - `outline_generator.py` - AI-powered outline creation
+  - `rag_system.py` - Retrieval and content generation
+  - `slide_generator.py` - Slide deck creation
+  - `processing_service.py` - Main pipeline orchestration
+  - `cli.py` - Command-line interface
+- `ui/` - Web viewer for slide decks
+- `outputs/` - Generated slide decks (JSON files)
+- `faiss_index/` - Stored vector embeddings for document search

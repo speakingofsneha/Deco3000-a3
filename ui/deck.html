@@ -9,9 +9,9 @@
 <body class="app">
   <header class="topbar">
     <div class="crumb">
-      <span class="crumb__title" id="deck-title">Slide Deck</span>
+      <span class="crumb__title" id="deck-title">Deck</span>
       <span class="crumb__sep">/</span>
-      <span class="crumb__meta" id="deck-meta">0 slides</span>
+      <span class="crumb__meta" id="deck-meta">10 slides</span>
     </div>
     <div class="actions">
       <button class="btn btn--ghost" id="refresh">Refresh</button>
@@ -34,16 +34,30 @@
 
         (data.slides || []).forEach((slide, idx) => {
           const section = document.createElement('section');
-          section.className = 'slide' + (slide.type === 'title' ? ' slide--light' : '');
-          section.innerHTML = `
-            <div class="slide__canvas">
-              <div class="slide__content">
-                <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' • ' + slide.provenance.join(', ') : ''}</div>
-                <h1 class="heading">${slide.title || ''}</h1>
-                ${(slide.content||[]).map(b => `<p class="body">${b.text || ''}</p>`).join('')}
+          const isTitle = slide.type === 'title' && idx === 0;
+          section.className = 'slide' + (isTitle ? ' slide--title' : '');
+
+          if (isTitle) {
+            const subtitle = (slide.content && slide.content[0] && slide.content[0].text) ? slide.content[0].text : '';
+            section.innerHTML = `
+              <div class="slide__canvas">
+                <div class="title__wrap">
+                  <h1 class="title__heading">${slide.title || ''}</h1>
+                  ${subtitle ? `<p class=\"title__subtitle\">${subtitle}</p>` : ''}
+                </div>
               </div>
-            </div>
-          `;
+            `;
+          } else {
+            section.innerHTML = `
+              <div class="slide__canvas">
+                <div class="slide__content">
+                  <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' • ' + slide.provenance.join(', ') : ''}</div>
+                  <h1 class="heading">${slide.title || ''}</h1>
+                  ${(slide.content||[]).map(b => `<p class=\"body\">${b.text || ''}</p>`).join('')}
+                </div>
+              </div>
+            `;
+          }
           deckEl.appendChild(section);
         });
       } catch (e) {
