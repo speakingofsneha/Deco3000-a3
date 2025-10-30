@@ -91,16 +91,13 @@ def process(
         if slide_deck:
             display_slide_summary(slide_deck)
             
-            # Save slide deck
+            # Inform where the processing service saved the file
             pdf_name = Path(pdf_path).stem
-            output_file = f"{pdf_name}_slides.json"
-            
-            slide_generator = SlideGenerator()
-            slide_generator.export_to_json(slide_deck, output_file)
-            
+            output_file = Path("outputs") / f"{pdf_name}.json"
             console.print(f"[green]✓ Slide deck saved to: {output_file}[/green]")
             
             # Display statistics
+            slide_generator = SlideGenerator()
             stats = slide_generator.get_slide_statistics(slide_deck)
             display_statistics(stats)
     else:

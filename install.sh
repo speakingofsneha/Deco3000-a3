@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 PDF to Slide Deck Converter - Installation Script"
+echo "Reframe"
 echo "=================================================="
 
 # Check if Python is installed

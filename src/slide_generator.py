@@ -41,10 +41,6 @@ class SlideGenerator:
                 simple_slide = self._create_simple_slide(outline_item)
                 slides.append(simple_slide)
         
-        # Create summary slide
-        summary_slide = self._create_summary_slide(outline_items)
-        slides.append(summary_slide)
-        
         # Generate slide deck
         slide_deck = SlideDeck(
             title=pdf_title,
@@ -65,21 +61,13 @@ class SlideGenerator:
             id=f"slide_{self.slide_counter}",
             type=SlideType.TITLE,
             title=title,
-            content=[
-                BulletPoint(
-                    text=f"Generated from: {source_pdf}",
-                    provenance=[],
-                    confidence=1.0
-                ),
-                BulletPoint(
-                    text=f"Created on: {datetime.now().strftime('%Y-%m-%d')}",
-                    provenance=[],
-                    confidence=1.0
-                )
-            ],
+            content=[],
+            provenance=[],
             metadata={
                 "slide_number": 1,
-                "is_title": True
+                "is_title": True,
+                "source_pdf": source_pdf,
+                "created_date": datetime.now().strftime('%Y-%m-%d')
             }
         )
     
@@ -94,8 +82,8 @@ class SlideGenerator:
         if not bullets:
             return [self._create_simple_slide(outline_item)]
         
-        # Split bullets into slides (max 5 bullets per slide)
-        max_bullets_per_slide = 5
+        # Split bullets into slides (max 4 bullets per slide)
+        max_bullets_per_slide = 4
         bullet_groups = [
             bullets[i:i + max_bullets_per_slide] 
             for i in range(0, len(bullets), max_bullets_per_slide)
@@ -108,11 +96,31 @@ class SlideGenerator:
             if len(bullet_groups) > 1:
                 slide_title += f" (Part {group_idx + 1})"
             
+            # Collect page numbers from all bullets for slide-level provenance
+            slide_pages = set()
+            clean_bullets = []
+            for bullet in bullet_group:
+                # Remove provenance from individual bullets
+                clean_bullet = BulletPoint(
+                    text=bullet.text,
+                    provenance=[],
+                    confidence=bullet.confidence
+                )
+                clean_bullets.append(clean_bullet)
+                
+                # Collect page numbers for slide provenance
+                for prov in bullet.provenance:
+                    if prov.startswith("Page "):
+                        slide_pages.add(prov)
+            
+            slide_provenance = sorted(list(slide_pages))
+            
             slide = Slide(
                 id=f"slide_{self.slide_counter}",
                 type=SlideType.CONTENT,
                 title=slide_title,
-                content=bullet_group,
+                content=clean_bullets,
+                provenance=slide_provenance,
                 metadata={
                     "slide_number": self.slide_counter,
                     "outline_item": outline_item.title,
@@ -139,6 +147,7 @@ class SlideGenerator:
                     confidence=0.5
                 )
             ],
+            provenance=[],
             metadata={
                 "slide_number": self.slide_counter,
                 "outline_item": outline_item.title,
