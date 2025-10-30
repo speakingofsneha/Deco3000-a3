@@ -4,9 +4,9 @@
 - [x] retrieve with provenance 
 - [x] RAG-generate outline as outline.json 
 - [x] map .json content onto slide template 
-  - [ ] intelligently add placeholder images
+  - [ ] needs to know when to add placeholder images 
 - [x] png
-  - [ ] svg export or editing text in slides
+  - [x] svg export or editing text in slides
 
 
 ## model/ pipeline
@@ -17,7 +17,6 @@
         - [x] use template as guide & parse infor inside it based on what it says.
  - [ ] very convuluded 'ai-esuqe' language, needs to be clearer, simpler & more natural. 
  - [ ] not sure if we need provenance (since content is short, it is easy to check if content is hallucinated or not) 
- - [ ] needs to know when to add placeholder images 
  - [ ] remove api nonsense 
  - [ ] body text & heading still dont match sometimes 
 
@@ -30,6 +29,7 @@
 ## bugs/ improvements
 - [ ] laptop heats up soooo much sometimes (is it a memory or cpu issue?)
 - [ ] in deck.html, provencance is loaded in overline
+- [ ] headings are bold and italic when exported as svg and imported into figma 
 
 
 ## documentation

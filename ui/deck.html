@@ -16,7 +16,13 @@
       <span class="crumb__meta" id="deck-meta">10 slides</span>
     </div>
     <div class="actions">
-      <button class="btn btn--ghost" id="export">Export</button>
+      <div class="export-dropdown">
+        <button class="btn btn--ghost" id="export-btn">Export</button>
+        <div class="dropdown-menu" id="export-menu">
+          <button class="dropdown-item" data-format="png">Export as PNG</button>
+          <button class="dropdown-item" data-format="svg">Export as SVG</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -85,41 +91,159 @@
       }
     }
 
-    async function exportSlides() {
+    function escapeXml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    }
+
+    function slideToSvg(slideElement) {
+      const rect = slideElement.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      
+      // Get background color
+      const styles = window.getComputedStyle(slideElement);
+      const bgColor = styles.backgroundColor || '#ffffff';
+      
+      // Collect all SVG text elements
+      const svgTextElements = [];
+      
+      // Process all nodes in the slide
+      const walker = document.createTreeWalker(
+        slideElement,
+        NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+        null
+      );
+      
+      let node;
+      const processedTextNodes = new Set();
+      
+      while (node = walker.nextNode()) {
+        if (node.nodeType === Node.TEXT_NODE && !processedTextNodes.has(node)) {
+          processedTextNodes.add(node);
+          const text = node.textContent.trim();
+          if (text) {
+            // Get the parent element for styling
+            const parentElement = node.parentElement;
+            if (parentElement) {
+              const elementRect = parentElement.getBoundingClientRect();
+              const slideRect = slideElement.getBoundingClientRect();
+              
+              if (elementRect.width > 0 && elementRect.height > 0) {
+                const computedStyles = window.getComputedStyle(parentElement);
+                const fontSize = parseFloat(computedStyles.fontSize) || 16;
+                const fontFamily = computedStyles.fontFamily.split(',')[0].replace(/['"]/g, '').trim() || 'sans-serif';
+                const fontWeight = computedStyles.fontWeight || 'normal';
+                let fontStyle = computedStyles.fontStyle || 'normal';
+                
+                // Ensure headings are not italic - always set to normal for headings
+                const tagName = parentElement.tagName?.toLowerCase();
+                const className = parentElement.className || '';
+                const isHeading = (tagName && ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) ||
+                                 className.includes('heading') || className.includes('title__heading');
+                
+                if (isHeading) {
+                  fontStyle = 'normal';
+                }
+                
+                const color = computedStyles.color || '#000000';
+                const textAlign = computedStyles.textAlign || 'left';
+                const lineHeight = parseFloat(computedStyles.lineHeight) || fontSize * 1.5;
+                
+                // Calculate position
+                const x = elementRect.left - slideRect.left;
+                const y = elementRect.top - slideRect.top + fontSize;
+                
+                // Handle alignment
+                let textX = x;
+                let anchor = 'start';
+                if (textAlign === 'center') {
+                  textX = x + (elementRect.width / 2);
+                  anchor = 'middle';
+                } else if (textAlign === 'right') {
+                  textX = x + elementRect.width;
+                  anchor = 'end';
+                }
+                
+                // Handle multi-line text
+                const lines = text.split('\n').filter(line => line.trim());
+                lines.forEach((line, index) => {
+                  if (line.trim()) {
+                    svgTextElements.push(
+                      `<text x="${textX}" y="${y + (index * lineHeight)}" 
+                        font-family="${fontFamily}" 
+                        font-size="${fontSize}" 
+                        font-weight="${fontWeight}" 
+                        font-style="${fontStyle}"
+                        fill="${color}"
+                        text-anchor="${anchor}">${escapeXml(line.trim())}</text>`
+                    );
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+      
+      // Create SVG with text elements
+      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+<rect width="100%" height="100%" fill="${bgColor}"/>
+${svgTextElements.join('\n')}
+</svg>`;
+      
+      return svgContent;
+    }
+
+    async function exportSlides(format) {
       const slides = document.querySelectorAll('.slide');
       if (slides.length === 0) {
         alert('No slides to export');
         return;
       }
 
-      const button = document.getElementById('export');
+      const button = document.getElementById('export-btn');
       const originalText = button.textContent;
       button.textContent = 'Exporting...';
       button.disabled = true;
+      closeDropdown();
 
       try {
         const zip = new JSZip();
-        const canvasPromises = [];
+        const promises = [];
 
-        for (let i = 0; i < slides.length; i++) {
-          const slide = slides[i];
-          const canvasPromise = html2canvas(slide, {
-            backgroundColor: '#ffffff',
-            scale: 2,
-            useCORS: true,
-            logging: false
-          }).then(canvas => {
-            return new Promise((resolve) => {
-              canvas.toBlob((blob) => {
-                zip.file(`slide ${i + 1}.png`, blob);
-                resolve();
-              }, 'image/png');
+        if (format === 'png') {
+          for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i];
+            const canvasPromise = html2canvas(slide, {
+              backgroundColor: '#ffffff',
+              scale: 2,
+              useCORS: true,
+              logging: false
+            }).then(canvas => {
+              return new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                  zip.file(`slide ${i + 1}.png`, blob);
+                  resolve();
+                }, 'image/png');
+              });
             });
-          });
-          canvasPromises.push(canvasPromise);
+            promises.push(canvasPromise);
+          }
+        } else if (format === 'svg') {
+          for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i];
+            const svgContent = slideToSvg(slide);
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            zip.file(`slide ${i + 1}.svg`, blob);
+          }
         }
 
-        await Promise.all(canvasPromises);
+        await Promise.all(promises);
 
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         const url = URL.createObjectURL(zipBlob);
@@ -144,8 +268,47 @@
       }
     }
 
-    document.getElementById('export').addEventListener('click', exportSlides);
-    document.addEventListener('DOMContentLoaded', loadDeck);
+    function toggleDropdown() {
+      const menu = document.getElementById('export-menu');
+      menu.classList.toggle('show');
+    }
+
+    function closeDropdown() {
+      const menu = document.getElementById('export-menu');
+      menu.classList.remove('show');
+    }
+
+    // Set up dropdown functionality
+    function setupDropdown() {
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const dropdown = document.querySelector('.export-dropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+
+      const exportBtn = document.getElementById('export-btn');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleDropdown();
+        });
+      }
+
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const format = item.getAttribute('data-format');
+          exportSlides(format);
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDeck();
+      setupDropdown();
+    });
   </script>
 </body>
 </html>
