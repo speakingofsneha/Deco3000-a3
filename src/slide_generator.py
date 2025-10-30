@@ -93,8 +93,6 @@ class SlideGenerator:
             self.slide_counter += 1
             
             slide_title = outline_item.title
-            if len(bullet_groups) > 1:
-                slide_title += f" (Part {group_idx + 1})"
             
             # Collect page numbers from all bullets for slide-level provenance
             slide_pages = set()

@@ -483,7 +483,7 @@ body.app {
 }
 
 .slide:has(.points .point:only-child) .points .point {
-  max-width: 72ch;
+  max-width: 100ch;
   margin-inline: auto;
   text-align: center;
   font-size: 36px;
@@ -504,7 +504,7 @@ body.app {
 /* 2 points - alternate layout: stacked vertically */
 .slide:nth-child(even):has(.points .point:nth-of-type(2):nth-last-of-type(1)) .points {
   grid-template-columns: 1fr;
-  max-width: 65ch;
+  max-width: 90ch;
   margin-left: auto;
   margin-right: auto;
 }

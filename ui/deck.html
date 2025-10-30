@@ -197,7 +197,7 @@
             section.innerHTML = `
               <div class="slide__canvas slide__canvas--${savedTheme}">
                 <div class="slide__content">
-                  <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' ? ' + slide.provenance.join(', ') : ''}</div>
+                  <div class="overline">${idx + 1} / ${(data.slides||[]).length}</div>
                   <h1 class="heading">${slide.title || ''}</h1>
                   ${renderSlideContent(slide.content)}
                 </div>
