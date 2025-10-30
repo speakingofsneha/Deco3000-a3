@@ -10,7 +10,7 @@
       "metadata": {
         "slide_number": 1,
         "is_title": true,
-        "source_pdf": "anu.pdf",
+        "source_pdf": "input/anu.pdf",
         "created_date": "2025-10-30"
       }
     },
@@ -20,22 +20,22 @@
       "title": "Problem Overview",
       "content": [
         {
-          "text": "Most task management applications promise to be all-in-one life organizers, but this leads to complexity and a high learning curve.",
+          "text": "Most task management applications promise to be all-in-one 'life organising' tools, but ultimately become overly complex and difficult to learn.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Users often struggle to maintain their motivation and sense of accomplishment, as completed tasks simply disappear without reward or recognition.",
+          "text": "Users initially get excited about each app's unique features, but struggle to maintain usage beyond a few weeks due to",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Task management applications often fail to account for the limited resources users have available, such as time and mental energy.",
+          "text": "The lack of tangible accomplishments in most task management apps leads to a sense of disappointment and disengagement from using",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Users may feel that current task management solutions are shallow copies of the same rigid template, lacking a human-centered approach",
+          "text": "Users perceive all task management applications as shallow copies of the same rigid template, desperately in need of a redesign",
           "provenance": [],
           "confidence": 0.85
         }
@@ -58,22 +58,17 @@
       "title": "User Research",
       "content": [
         {
-          "text": "Most task management applications promise to be all-in-one 'life organizing' tools, making them overly complex and difficult to learn.",
+          "text": "Most to-do applications promise to be an all-in-one 'life organising' tool, making them lose nuance and become overly complex.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "The sense of accomplishment is rare in digital task management, as completed tasks simply disappear without reward or acknowledgment.",
+          "text": "The high learning curve of task management applications can lead users to abandon their use after only a couple of",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Customization options can be overwhelming and mentally exhausting, leading to a need for more intuitive and user-friendly design.",
-          "provenance": [],
-          "confidence": 0.85
-        },
-        {
-          "text": "Users struggle to maintain motivation and engagement beyond a couple of weeks due to the lack of tangible accomplishments and",
+          "text": "The sense of accomplishment is important but rare in the digital world, as tasks marked as completed simply disappear without",
           "provenance": [],
           "confidence": 0.85
         }
@@ -96,12 +91,17 @@
       "title": "Key Insights",
       "content": [
         {
-          "text": "Task management applications lack tangible accomplishments, leaving users without a sense of fulfillment or satisfaction.",
+          "text": "The sense of accomplishment is rare in digital task management, as completed tasks simply disappear without reward or recognition.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "The overpromising and overcomplicating nature of these apps can lead to anxiety and frustration among users.",
+          "text": "Task management applications often lack tangible accomplishments, failing to provide a sense of pride and satisfaction for users.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The rigid, one-size-fits-all templates used in task management apps can be inhumane and induce anxiety, making re-design essential.",
           "provenance": [],
           "confidence": 0.85
         }
@@ -123,17 +123,22 @@
       "title": "Design Goals",
       "content": [
         {
-          "text": "The act of crossing out a completed task provides a tangible artifact that demonstrates progress towards a goal, making pen-and-paper",
+          "text": "People prefer pen-and-paper lists because crossing out completed tasks provides a tangible artifact demonstrating progress towards goals.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Users prefer pen-and-paper lists due to the tangible nature of crossing out completed tasks, providing a sense of progress and",
+          "text": "Marking tasks as completed in digital tools often lacks a sense of accomplishment, as the task simply disappears without a",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "The goal is to design a to-do list that offers a basic, fast, and delightful experience for users, making managing",
+          "text": "Users value a basic, fast, and delightful experience when managing tasks, making simplicity a key design goal.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "The preference for pen-and-paper lists is partly due to the lack of tangible rewards and sense of accomplishment in digital",
           "provenance": [],
           "confidence": 0.85
         }
@@ -154,25 +159,25 @@
     {
       "id": "slide_6",
       "type": "content",
-      "title": "Solution Overview",
+      "title": "Solution Overview (Part 1)",
       "content": [
         {
-          "text": "Users often abandon task management applications within weeks due to overwhelming customisation options and mental exhaustion.",
+          "text": "Users initially find task management applications overwhelming due to extensive customization options and mental exhaustion.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "The act of crossing out completed tasks in pen-and-paper lists provides a tangible artifact, demonstrating progress towards goals and offering",
+          "text": "The act of crossing out completed tasks provides a tangible artifact, demonstrating progress towards goals in pen-and-paper lists.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Digital task management tools can lose nuance and become overly complex, with a high learning curve, leading to frustration and",
+          "text": "Digital task management apps often fail to account for willpower needed to make decisions, leading to limited usage.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Users crave a sense of accomplishment when completing tasks, which is often lacking in digital task management applications.",
+          "text": "Marking tasks as completed in digital tools does not provide a sense of accomplishment or reward, unlike physical lists.",
           "provenance": [],
           "confidence": 0.85
         }
@@ -187,31 +192,55 @@
         "slide_number": 6,
         "outline_item": "Solution Overview",
         "part": 1,
-        "total_parts": 1
+        "total_parts": 2
       }
     },
     {
       "id": "slide_7",
       "type": "content",
+      "title": "Solution Overview (Part 2)",
+      "content": [
+        {
+          "text": "Users lose nuance and complexity when organizing digitally, resulting in overly complex tools with high learning curves.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 2",
+        "Page 3",
+        "Page 5"
+      ],
+      "metadata": {
+        "slide_number": 7,
+        "outline_item": "Solution Overview",
+        "part": 2,
+        "total_parts": 2
+      }
+    },
+    {
+      "id": "slide_8",
+      "type": "content",
       "title": "User Flow",
       "content": [
         {
-          "text": "Users want frictionless task creation, requiring only typing and entering without extra clicks.",
+          "text": "Users can create tasks quickly and easily without extra clicks, reducing friction in task creation.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Initial resistance to using task management apps is due to the novelty factor wearing off after a few weeks.",
+          "text": "Customization options can be overwhelming and mentally exhausting, highlighting the need for simplicity in task management applications.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Users crave a seamless experience that accounts for the limited resource of willpower needed to make decisions.",
+          "text": "Initial appearances may differ between task management applications, but users often struggle to maintain usage beyond a few weeks due",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Each bullet provides unique information, focusing on concrete details, user insights, or design decisions.",
+          "text": "Each bullet provides unique information and focuses on concrete details, user insights, or design decisions.",
           "provenance": [],
           "confidence": 0.85
         }
@@ -224,29 +253,34 @@
         "Page 7"
       ],
       "metadata": {
-        "slide_number": 7,
+        "slide_number": 8,
         "outline_item": "User Flow",
         "part": 1,
         "total_parts": 1
       }
     },
     {
-      "id": "slide_8",
+      "id": "slide_9",
       "type": "content",
-      "title": "Wireframes",
+      "title": "Wireframes (Part 1)",
       "content": [
         {
-          "text": "Users can create tasks frictionlessly by typing and entering, without extra clicks.",
+          "text": "Wireframes were created as paper sketches during the ideation phase to visualize desktop and mobile designs.",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "The design includes two main objects: lists and tasks, as defined by earlier design goals.",
+          "text": "The wireframe user flow shows only essential interactions of the web-app due to space constraints, with edge cases available in",
           "provenance": [],
           "confidence": 0.85
         },
         {
-          "text": "Onboarding features include a home view with uni-view navigation for easy task management.",
+          "text": "Users can create frictionless tasks by simply typing and entering, without additional clicks.",
+          "provenance": [],
+          "confidence": 0.85
+        },
+        {
+          "text": "Two primary objects were designed: lists and tasks, which are central to the application's functionality.",
           "provenance": [],
           "confidence": 0.85
         }
@@ -260,10 +294,36 @@
         "Page 7"
       ],
       "metadata": {
-        "slide_number": 8,
+        "slide_number": 9,
         "outline_item": "Wireframes",
         "part": 1,
-        "total_parts": 1
+        "total_parts": 2
+      }
+    },
+    {
+      "id": "slide_10",
+      "type": "content",
+      "title": "Wireframes (Part 2)",
+      "content": [
+        {
+          "text": "The wireframes served as a foundation for high-fidelity prototyping and development, ensuring a seamless user experience.",
+          "provenance": [],
+          "confidence": 0.85
+        }
+      ],
+      "provenance": [
+        "Page 1",
+        "Page 10",
+        "Page 2",
+        "Page 3",
+        "Page 5",
+        "Page 7"
+      ],
+      "metadata": {
+        "slide_number": 10,
+        "outline_item": "Wireframes",
+        "part": 2,
+        "total_parts": 2
       }
     }
   ],
@@ -277,6 +337,6 @@
     "modification_date": "D:20251028021255Z",
     "page_count": 10
   },
-  "created_at": "2025-10-30T08:47:34.340412",
-  "source_pdf": "anu.pdf"
+  "created_at": "2025-10-30T09:03:27.409930",
+  "source_pdf": "input/anu.pdf"
 }

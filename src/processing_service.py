@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import logging
 from typing import Optional, Dict, Any
@@ -136,10 +137,18 @@ class PDFProcessingService:
         """Save processing outputs"""
         pdf_name = Path(pdf_path).stem
         
-        # Save slide deck JSON
-        json_path = self.output_dir / f"{pdf_name}_slides.json"
+        # Save slide deck JSON as <name>.json
+        json_path = self.output_dir / f"{pdf_name}.json"
         self.slide_generator.export_to_json(slide_deck, str(json_path))
         logger.info(f"\n  ✓ Saved: {json_path}")
+        
+        # Update latest.json pointer for the viewer default
+        try:
+            latest_path = self.output_dir / "latest.json"
+            shutil.copyfile(str(json_path), str(latest_path))
+            logger.info(f"  ✓ Updated: {latest_path}")
+        except Exception as e:
+            logger.warning(f"  ! Could not update latest.json: {e}")
         
         # Save vector store
         vector_store_path = self.vector_store_dir / pdf_name
@@ -148,7 +157,7 @@ class PDFProcessingService:
     
     def load_existing_slide_deck(self, pdf_name: str) -> Optional[SlideDeck]:
         """Load existing slide deck if available"""
-        json_path = self.output_dir / f"{pdf_name}_slides.json"
+        json_path = self.output_dir / f"{pdf_name}.json"
         
         if json_path.exists():
             try:
@@ -160,7 +169,7 @@ class PDFProcessingService:
     
     def get_processing_status(self, pdf_name: str) -> Dict[str, Any]:
         """Get processing status for a PDF"""
-        json_path = self.output_dir / f"{pdf_name}_slides.json"
+        json_path = self.output_dir / f"{pdf_name}.json"
         vector_store_path = self.vector_store_dir / pdf_name
         
         return {

@@ -189,7 +189,7 @@
         // Load slide data from JSON file
         async function loadSlideData() {
             try {
-                const response = await fetch('outputs/anu_slides.json');
+                const response = await fetch('outputs/latest.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -197,7 +197,7 @@
                 renderSlides();
             } catch (error) {
                 console.error('Error loading slide data:', error);
-                showError('Failed to load slide deck. Please make sure anu_slides.json exists in the outputs folder.');
+                showError('Failed to load slide deck. Please make sure the json exists in the outputs folder.');
             }
         }
         
