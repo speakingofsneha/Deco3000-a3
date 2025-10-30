@@ -37,7 +37,8 @@ class OutlineGenerator:
         # Broad keyword patterns that generalize across reports
         topic_patterns: Dict[str, List[str]] = {
             "Problem Overview": [
-                r"problem", r"pain point", r"challenge", r"current(\s|-)state", r"as-is"
+                r"problem", r"pain point", r"challenge", r"current(\s|-)state", r"as-is",
+                r"understand", r"understanding", r"context", r"background", r"why this", r"we aim"
             ],
             "User Research": [
                 r"user research", r"interview", r"survey", r"observation", r"persona", r"journey map"

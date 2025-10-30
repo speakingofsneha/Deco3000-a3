@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Slide Deck</title>
+  <link rel="stylesheet" href="./deck.css" />
+</head>
+<body class="app">
+  <header class="topbar">
+    <div class="crumb">
+      <span class="crumb__title" id="deck-title">Slide Deck</span>
+      <span class="crumb__sep">/</span>
+      <span class="crumb__meta" id="deck-meta">0 slides</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn--ghost" id="refresh">Refresh</button>
+    </div>
+  </header>
+
+  <main class="deck" id="deck"></main>
+  <script>
+    async function loadDeck() {
+      const params = new URLSearchParams(window.location.search);
+      const file = params.get('file') || '../outputs/latest.json';
+      const deckEl = document.getElementById('deck');
+      deckEl.innerHTML = '';
+      try {
+        const res = await fetch(file);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        document.getElementById('deck-title').textContent = data.title || 'Slide Deck';
+        document.getElementById('deck-meta').textContent = `${(data.slides||[]).length} slides`;
+
+        (data.slides || []).forEach((slide, idx) => {
+          const section = document.createElement('section');
+          section.className = 'slide' + (slide.type === 'title' ? ' slide--light' : '');
+          section.innerHTML = `
+            <div class="slide__canvas">
+              <div class="slide__content">
+                <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' • ' + slide.provenance.join(', ') : ''}</div>
+                <h1 class="heading">${slide.title || ''}</h1>
+                ${(slide.content||[]).map(b => `<p class="body">${b.text || ''}</p>`).join('')}
+              </div>
+            </div>
+          `;
+          deckEl.appendChild(section);
+        });
+      } catch (e) {
+        const section = document.createElement('section');
+        section.className = 'slide';
+        section.innerHTML = `<div class="slide__canvas"><div class="slide__content"><h1 class="heading">Failed to load</h1><p class="body">${e.message}</p></div></div>`;
+        deckEl.appendChild(section);
+      }
+    }
+    document.getElementById('refresh').addEventListener('click', loadDeck);
+    document.addEventListener('DOMContentLoaded', loadDeck);
+  </script>
+</body>
+</html>

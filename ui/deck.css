@@ -1,0 +1,93 @@
+/* Compiled from template.scss for direct use in the HTML */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body.app {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: #eef0f2;
+  color: #111318;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px;
+  background: linear-gradient(180deg, rgba(238,240,242,0.96), rgba(238,240,242,0.85) 70%, rgba(238,240,242,0));
+  backdrop-filter: saturate(1.2) blur(4px);
+}
+
+.crumb {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 12px; background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; box-shadow: 0 6px 24px rgba(17,19,24,0.06);
+  font-size: 14px; color: #657082;
+}
+.crumb__title { color: #111318; font-weight: 600; }
+
+.actions { display: inline-flex; gap: 8px; }
+.btn {
+  appearance: none; border: 1px solid #e3e7ed; background: #ffffff; color: #111318;
+  padding: 8px 12px; border-radius: 10px; font-size: 14px;
+  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
+}
+.btn--ghost { background: #f7f8fa; }
+
+/* Deck grid */
+.deck {
+  width: max-content;
+  margin: 10px auto 48px;
+  display: grid; gap: 24px;
+  overflow-x: auto;
+}
+
+/* Slides */
+.slide {
+  background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px;
+  padding: 12px;
+}
+.slide--light {
+  background: #f7f8fa;
+}
+
+/* Canvas (visual placeholder rectangle) */
+.slide__canvas {
+  width: 1368px;
+  height: 768px;
+  position: relative;
+}
+
+/* Slide inner layout */
+.slide__content {
+  padding: 64px 64px 40px 64px;
+}
+
+.overline {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 16px 0;
+}
+
+.heading {
+  font-size: 36px;
+  line-height: 1.2;
+  margin: 0 0 16px 0;
+}
+
+.body {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 40px 0;
+}
+
+.media-placeholder {
+  width: 100%;
+  height: 420px;
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.slide__label {
+  font-size: 12px; letter-spacing: .08em; color: #1e222b; opacity: .85;
+  user-select: none;
+}

@@ -25,7 +25,10 @@ class RAGSystem:
         """Generate bullet points for an outline item using RAG"""
         
         # Search for relevant chunks
-        query = f"{outline_item.title} {outline_item.description}"
+        extra_query = ""
+        if 'problem' in (outline_item.title or '').lower():
+            extra_query = " context background understand why issue"
+        query = f"{outline_item.title} {outline_item.description}{extra_query}"
         similar_chunks = self.chunking_service.search_similar_chunks(query, top_k)
         
         if not similar_chunks:
@@ -180,10 +183,7 @@ Format each bullet on a new line starting with "- "
                 if key in seen_keys:
                     continue
                 seen_keys.add(key)
-            # Trim to ~20 words to keep concise
-            words = b.split()
-            if len(words) > 20:
-                b = ' '.join(words[:20])
+            # Do not trim sentences; preserve full bullet text
             result.append(b.strip())
         return result
 
