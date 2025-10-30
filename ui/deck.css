@@ -6,9 +6,10 @@ html {
 body.app {
   margin: 0;
   min-height: 100%;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   background: #eef0f2;
   color: #111318;
+  padding-bottom: 70px; /* Space for bottom toolbar */
 }
 
 /* Top bar */
@@ -25,7 +26,7 @@ body.app {
 
 .crumb {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: 8px 12px; background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; box-shadow: 0 6px 24px rgba(17,19,24,0.06); 
+  padding: 10px 16px; background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px; box-shadow: 0 6px 24px rgba(17,19,24,0.06); 
   font-size: 14px; color: #657082;
 }
 .crumb__title { color: #111318; font-weight: 600; }
@@ -33,14 +34,9 @@ body.app {
 .actions { display: inline-flex; gap: 8px; position: relative; }
 .btn {
   appearance: none; border: 1px solid #e3e7ed; background: #ffffff; color: #111318;
-  padding: 8px 12px; border-radius: 10px; font-size: 14px;
+  padding: 10px 16px; border-radius: 5px; font-size: 14px;
   box-shadow: 0 6px 24px rgba(17,19,24,0.06);
   cursor: pointer;
-}
-.btn--ghost { background: #f7f8fa; }
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* Export dropdown */
@@ -56,7 +52,7 @@ body.app {
   right: 0;
   background: #ffffff;
   border: 1px solid #e3e7ed;
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: 0 8px 24px rgba(17,19,24,0.12);
   min-width: 160px;
   z-index: 1001;
@@ -106,14 +102,25 @@ body.app {
 .slide {
   background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px;
   padding: 12px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.slide.slide--active,
+.slide--active {
+  opacity: 1 !important;
 }
 .slide--light {
-  background: #f7f8fa;
+  background: #ffffff;
 }
 
 /* Title slide (first slide) */
-.slide--title {
+.slide--title.slide--light {
   background: #ffffff;
+}
+
+.slide--title.slide--dark {
+  background: #1D1A1B !important;
 }
 .slide--title .slide__canvas {
   display: flex;
@@ -129,41 +136,45 @@ body.app {
 .title__heading {
   font-size: 50px;
   line-height: 1.1;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0 0 12px 0;
   color: #1a1d23;
+  font-family: 'DM Sans', sans-serif;
 }
 .title__subtitle {
   font-size: 20px;
   line-height: 1.6;
   color: #525c6a;
   margin: 0;
+  font-family: 'DM Sans', sans-serif;
 }
 
 /* Canvas (visual placeholder rectangle) */
 .slide__canvas {
-  width: 1368px;
-  height: 768px;
+  width: 1373px;
+  height: 771px;
   position: relative;
 }
 
 /* Slide inner layout */
 .slide__content {
   padding: 64px 64px 40px 64px;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .overline {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
 }
 
 .heading {
   font-size: 36px;
   line-height: 1.2;
-  margin: 0 0 16px 0;
+  margin: 0 0 40px 0;
+  font-weight: 600;
 }
 
 .body {
@@ -176,10 +187,169 @@ body.app {
   width: 100%;
   height: 420px;
   background: #d9d9d9;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .slide__label {
   font-size: 12px; letter-spacing: .08em; color: #1e222b; opacity: .85;
   user-select: none;
+}
+
+/* Bottom Toolbar */
+.bottom-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7f8fa;
+  border: 1px solid #e3e7ed;
+  border-radius: 5px;
+  padding: 6px 8px;
+  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
+  pointer-events: auto;
+  font-family: 'Inter', sans-serif;
+}
+
+.background-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: #111318;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.15s ease;
+}
+
+
+.toolbar-dropdown-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #e3e7ed;
+  border-radius: 5px;
+  box-shadow: 0 8px 24px rgba(17,19,24,0.12);
+  min-width: 140px;
+  overflow: hidden;
+  z-index: 1002;
+  font-family: 'Inter', sans-serif;
+}
+
+.toolbar-dropdown-menu.show {
+  display: block;
+}
+
+.toolbar-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #111318;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.15s ease;
+}
+
+.toolbar-dropdown-item:hover {
+  background: #f7f8fa;
+}
+
+.toolbar-dropdown-item.active {
+  background: #f7f8fa;
+  font-weight: 500;
+}
+
+.toolbar-dropdown-item:first-child {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.toolbar-dropdown-item:last-child {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+/* Dark Mode Styles */
+.slide--dark {
+  background: #131313 !important;
+  border-color: #3a3638 !important;
+}
+
+.slide--dark .slide__canvas {
+  background: #131313;
+}
+
+.slide__canvas--dark {
+  background: #131313 !important;
+}
+
+.slide--dark .slide__content,
+.slide__canvas--dark .slide__content {
+  color: #EEEEEE;
+}
+
+.slide--dark .heading,
+.slide__canvas--dark .heading {
+  color: #EEEEEE !important;
+  font-weight: 500 !important;
+}
+
+.slide--dark .body,
+.slide__canvas--dark .body {
+  color: #EEEEEE !important;
+}
+
+.slide--dark .overline,
+.slide__canvas--dark .overline {
+  color: #EEEEEE !important;
+  opacity: 0.7;
+}
+
+.slide--dark .title__heading,
+.slide__canvas--dark .title__heading {
+  color: #EEEEEE !important;
+  font-weight: 500 !important;
+}
+
+.slide--dark .title__subtitle,
+.slide__canvas--dark .title__subtitle {
+  color: #EEEEEE !important;
+  opacity: 0.8;
+}
+
+/* Light Mode Styles (default) */
+.slide--light {
+  background: #ffffff;
+}
+
+.slide__canvas--light {
+  background: #ffffff;
 }

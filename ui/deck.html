@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Slide Deck</title>
+  <title>Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./deck.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="icon" type="image/png" href="../favicon.png" />
 </head>
 <body class="app">
   <header class="topbar">
@@ -27,6 +31,28 @@
   </header>
 
   <main class="deck" id="deck"></main>
+
+  <footer class="bottom-toolbar">
+    <div class="toolbar-group">
+      <div class="background-dropdown">
+        <button class="toolbar-btn" id="background-btn">
+          <span>Background</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="toolbar-dropdown-menu" id="background-menu">
+          <button class="toolbar-dropdown-item" data-theme="light">
+            <span>Light Mode</span>
+          </button>
+          <button class="toolbar-dropdown-item" data-theme="dark">
+            <span>Dark Mode</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
   <script>
     let pdfName = 'slides'; // Default name if not found
     
@@ -53,17 +79,19 @@
         // Update deck title and page title to show PDF name
         document.getElementById('deck-title').textContent = pdfName;
         document.title = `${pdfName} - Slide Deck`;
-        document.getElementById('deck-meta').textContent = `${(data.slides||[]).length} slides`;
+        const totalSlides = (data.slides||[]).length;
+        updateSlideMeta(1, totalSlides);
 
         (data.slides || []).forEach((slide, idx) => {
           const section = document.createElement('section');
           const isTitle = slide.type === 'title' && idx === 0;
-          section.className = 'slide' + (isTitle ? ' slide--title' : '');
+          const savedTheme = localStorage.getItem('slide-theme') || 'light';
+          section.className = 'slide slide--' + savedTheme + (isTitle ? ' slide--title' : '');
 
           if (isTitle) {
             const subtitle = (slide.content && slide.content[0] && slide.content[0].text) ? slide.content[0].text : '';
             section.innerHTML = `
-              <div class="slide__canvas">
+              <div class="slide__canvas slide__canvas--${savedTheme}">
                 <div class="title__wrap">
                   <h1 class="title__heading">${slide.title || ''}</h1>
                   ${subtitle ? `<p class=\"title__subtitle\">${subtitle}</p>` : ''}
@@ -72,7 +100,7 @@
             `;
           } else {
             section.innerHTML = `
-              <div class="slide__canvas">
+              <div class="slide__canvas slide__canvas--${savedTheme}">
                 <div class="slide__content">
                   <div class="overline">${idx + 1} / ${(data.slides||[]).length}${slide.provenance && slide.provenance.length ? ' • ' + slide.provenance.join(', ') : ''}</div>
                   <h1 class="heading">${slide.title || ''}</h1>
@@ -83,6 +111,14 @@
           }
           deckEl.appendChild(section);
         });
+        
+        // Set up intersection observer for slide opacity after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+          setupSlideObserver();
+          // Apply saved theme after slides are loaded
+          const savedTheme = localStorage.getItem('slide-theme') || 'light';
+          applyThemeToSlides(savedTheme);
+        }, 300);
       } catch (e) {
         const section = document.createElement('section');
         section.className = 'slide';
@@ -217,21 +253,21 @@ ${svgTextElements.join('\n')}
         const promises = [];
 
         if (format === 'png') {
-          for (let i = 0; i < slides.length; i++) {
-            const slide = slides[i];
-            const canvasPromise = html2canvas(slide, {
-              backgroundColor: '#ffffff',
-              scale: 2,
-              useCORS: true,
-              logging: false
-            }).then(canvas => {
-              return new Promise((resolve) => {
-                canvas.toBlob((blob) => {
-                  zip.file(`slide ${i + 1}.png`, blob);
-                  resolve();
-                }, 'image/png');
-              });
+        for (let i = 0; i < slides.length; i++) {
+          const slide = slides[i];
+          const canvasPromise = html2canvas(slide, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            logging: false
+          }).then(canvas => {
+            return new Promise((resolve) => {
+              canvas.toBlob((blob) => {
+                zip.file(`slide ${i + 1}.png`, blob);
+                resolve();
+              }, 'image/png');
             });
+          });
             promises.push(canvasPromise);
           }
         } else if (format === 'svg') {
@@ -278,6 +314,93 @@ ${svgTextElements.join('\n')}
       menu.classList.remove('show');
     }
 
+    function updateSlideMeta(currentSlide, totalSlides) {
+      const metaEl = document.getElementById('deck-meta');
+      if (metaEl) {
+        metaEl.textContent = `Section ${currentSlide} of ${totalSlides}`;
+      }
+    }
+
+    function setupSlideObserver() {
+      const slides = document.querySelectorAll('.slide');
+      if (slides.length === 0) {
+        console.log('No slides found');
+        return;
+      }
+
+      function updateActiveSlide() {
+        const viewportCenter = window.innerHeight / 2;
+        let activeSlide = null;
+        let minDistance = Infinity;
+
+        slides.forEach((slide) => {
+          const rect = slide.getBoundingClientRect();
+          const slideCenter = rect.top + (rect.height / 2);
+          const distance = Math.abs(slideCenter - viewportCenter);
+
+          // Check if slide is visible in viewport
+          if (rect.top < window.innerHeight && rect.bottom > 0) {
+            if (distance < minDistance) {
+              minDistance = distance;
+              activeSlide = slide;
+            }
+          }
+        });
+
+        // If no slide found, use the first visible slide
+        if (!activeSlide) {
+          slides.forEach((slide) => {
+            const rect = slide.getBoundingClientRect();
+            if (rect.top >= 0 && rect.top < window.innerHeight) {
+              if (!activeSlide) {
+                activeSlide = slide;
+              }
+            }
+          });
+        }
+
+        // Update opacity and meta
+        slides.forEach(slide => {
+          slide.classList.remove('slide--active');
+        });
+
+        if (activeSlide) {
+          activeSlide.classList.add('slide--active');
+          const slideIndex = Array.from(slides).indexOf(activeSlide) + 1;
+          updateSlideMeta(slideIndex, slides.length);
+        } else if (slides.length > 0) {
+          // Fallback: activate first slide
+          slides[0].classList.add('slide--active');
+          updateSlideMeta(1, slides.length);
+        }
+      }
+
+      // Update on scroll
+      let scrollTimeout;
+      const handleScroll = () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateActiveSlide, 10);
+      };
+      
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('resize', handleScroll, { passive: true });
+
+      // Initial update - ensure first slide is active on load
+      if (slides.length > 0) {
+        slides[0].classList.add('slide--active');
+        updateSlideMeta(1, slides.length);
+      }
+      
+      // Also update after a short delay to ensure everything is rendered
+      setTimeout(() => {
+        updateActiveSlide();
+      }, 100);
+      
+      setTimeout(() => {
+        updateActiveSlide();
+      }, 500);
+    }
+
     // Set up dropdown functionality
     function setupDropdown() {
       // Close dropdown when clicking outside
@@ -305,9 +428,94 @@ ${svgTextElements.join('\n')}
       });
     }
 
+    // Global function to apply theme to slides
+    function applyThemeToSlides(theme) {
+      const slides = document.querySelectorAll('.slide');
+      const slideCanvases = document.querySelectorAll('.slide__canvas');
+      
+      slides.forEach(slide => {
+        if (theme === 'dark') {
+          slide.classList.add('slide--dark');
+          slide.classList.remove('slide--light');
+        } else {
+          slide.classList.remove('slide--dark');
+          slide.classList.add('slide--light');
+        }
+      });
+
+      slideCanvases.forEach(canvas => {
+        if (theme === 'dark') {
+          canvas.classList.add('slide__canvas--dark');
+          canvas.classList.remove('slide__canvas--light');
+        } else {
+          canvas.classList.remove('slide__canvas--dark');
+          canvas.classList.add('slide__canvas--light');
+        }
+      });
+    }
+
+    // Background theme functionality
+    function setupBackgroundToolbar() {
+      const backgroundBtn = document.getElementById('background-btn');
+      const backgroundMenu = document.getElementById('background-menu');
+      let currentTheme = localStorage.getItem('slide-theme') || 'light';
+
+      // Apply saved theme
+      applyThemeToSlides(currentTheme);
+      updateDropdownStates(currentTheme);
+
+      function toggleBackgroundMenu() {
+        backgroundMenu.classList.toggle('show');
+      }
+
+      function closeBackgroundMenu() {
+        backgroundMenu.classList.remove('show');
+      }
+
+      function updateDropdownStates(theme) {
+        document.querySelectorAll('.toolbar-dropdown-item').forEach(item => {
+          if (item.getAttribute('data-theme') === theme) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      }
+
+      function applyTheme(theme) {
+        applyThemeToSlides(theme);
+        updateDropdownStates(theme);
+        localStorage.setItem('slide-theme', theme);
+        currentTheme = theme;
+      }
+
+      backgroundBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleBackgroundMenu();
+      });
+
+      document.querySelectorAll('.toolbar-dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const theme = item.getAttribute('data-theme');
+          applyTheme(theme);
+          closeBackgroundMenu();
+        });
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const dropdown = document.querySelector('.background-dropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+          closeBackgroundMenu();
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       loadDeck();
       setupDropdown();
+      setupBackgroundToolbar();
     });
   </script>
 </body>

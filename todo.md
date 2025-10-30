@@ -22,9 +22,10 @@
 
 
 ## design 
+- [x] light & dark mode for slides 
 - [ ] slides template (diff layouts)
 - [ ] interface for application 
-
+- [ ] add favicon
 
 ## bugs/ improvements
 - [ ] laptop heats up soooo much sometimes (is it a memory or cpu issue?)
