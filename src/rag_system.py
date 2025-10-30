@@ -48,6 +48,9 @@ class RAGSystem:
         # Remove duplicates and low quality
         bullets = self._filter_bullets(bullets)
         
+        # Suppress repeated phrases and near-duplicates more aggressively
+        bullets = self._deduplicate_phrases(bullets)
+        
         # Limit to max
         bullets = bullets[:max_bullets]
         
@@ -157,6 +160,33 @@ Format each bullet on a new line starting with "- "
         
         return bullets
     
+    def _deduplicate_phrases(self, bullets: List[str]) -> List[str]:
+        """Remove bullets that repeat common subphrases; keep the first occurrence."""
+        if not bullets:
+            return bullets
+        phrases = [
+            'pen and paper', 'current system', 'as mentioned', 'as discussed'
+        ]
+        seen_keys: Set[str] = set()
+        result: List[str] = []
+        for b in bullets:
+            b_norm = ' '.join(b.lower().split())
+            key = None
+            for p in phrases:
+                if p in b_norm:
+                    key = p
+                    break
+            if key:
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
+            # Trim to ~20 words to keep concise
+            words = b.split()
+            if len(words) > 20:
+                b = ' '.join(words[:20])
+            result.append(b.strip())
+        return result
+
     def _filter_bullets(self, bullets: List[str]) -> List[str]:
         """Filter out duplicates and low quality bullets"""
         filtered = []

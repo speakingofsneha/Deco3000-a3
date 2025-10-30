@@ -14,77 +14,113 @@ class OutlineGenerator:
         self.llm_service = get_llm_service()
     
     def generate_outline(self, pdf_title: str, chunks: List[Chunk], max_sections: int = 8) -> List[OutlineItem]:
-        """Generate outline by analyzing content and creating meaningful slide titles"""
-        
-        # Group chunks by section and page
-        sections = {}
+        """Generate outline with content-aware ordering and guaranteed coverage of key design topics.
+        - Derive topics from content (not PDF headers)
+        - Order slides in a canonical design narrative when possible
+        - Fall back to PDF order when topics are ambiguous
+        """
+
+        # Canonical topic order for design visual reports
+        topic_order = [
+            "Problem Overview",
+            "User Research",
+            "Key Insights",
+            "Design Goals",
+            "Solution Overview",
+            "User Flow",
+            "Wireframes",
+            "System / Data Model",
+            "Evaluation / Testing",
+            "Next Steps"
+        ]
+
+        # Broad keyword patterns that generalize across reports
+        topic_patterns: Dict[str, List[str]] = {
+            "Problem Overview": [
+                r"problem", r"pain point", r"challenge", r"current(\s|-)state", r"as-is"
+            ],
+            "User Research": [
+                r"user research", r"interview", r"survey", r"observation", r"persona", r"journey map"
+            ],
+            "Key Insights": [
+                r"insight", r"finding", r"theme", r"learning", r"we found", r"we observed"
+            ],
+            "Design Goals": [
+                r"goal", r"objective", r"success metric", r"design principle"
+            ],
+            "Solution Overview": [
+                r"solution", r"concept", r"approach", r"ideation", r"prototype", r"wireframe"
+            ],
+            "User Flow": [
+                r"user flow", r"flow diagram", r"task flow", r"screen flow", r"navigation flow"
+            ],
+            "Wireframes": [
+                r"annotated wireframe", r"annotation", r"wireframe", r"screen flow", r"ui flow", r"mockup"
+            ],
+            "System / Data Model": [
+                r"data model", r"entity", r"schema", r"architecture", r"system design", r"er diagram"
+            ],
+            "Evaluation / Testing": [
+                r"usability", r"test", r"evaluation", r"feedback", r"iteration", r"finding"
+            ],
+            "Next Steps": [
+                r"next step", r"future work", r"roadmap", r"plan"
+            ],
+        }
+
+        # Aggregate topic candidates across chunks
+        topic_candidates: Dict[str, Dict[str, Any]] = {}
         for chunk in chunks:
-            section_title = chunk.metadata.get('section_title', 'General')
-            page_num = chunk.page_number
-            
-            # Create a key that groups by section
-            if section_title not in sections:
-                sections[section_title] = {
-                    'title': section_title,
-                    'chunks': [],
-                    'page': page_num,
-                    'total_length': 0
-                }
-            sections[section_title]['chunks'].append(chunk)
-            sections[section_title]['total_length'] += len(chunk.text)
-        
-        # Sort sections by page number
-        sorted_sections = sorted(sections.items(), key=lambda x: x[1]['page'])
-        
-        # Filter: Remove sections that are too small
-        meaningful_sections = []
-        for section_title, section_data in sorted_sections:
-            # Keep sections with at least 150 characters of content
-            if section_data['total_length'] >= 150:
-                meaningful_sections.append((section_title, section_data))
-        
-        # If we filtered out everything, be more lenient
-        if not meaningful_sections and sorted_sections:
-            meaningful_sections = sorted_sections[:max_sections]
-        
-        # Limit to max_sections
-        sections_to_use = meaningful_sections[:max_sections]
-        
-        logger.info(f"Creating outline from {len(sections_to_use)} sections")
-        
-        # Create outline items
-        outline_items = []
-        order = 1
-        seen_titles = set()
-        
-        for section_title, section_data in sections_to_use:
-            section_chunks = section_data['chunks']
-            section_text = " ".join([chunk.text for chunk in section_chunks[:3]])
-            
-            # Clean the title
-            cleaned_title = self._clean_title(section_title)
-            
-            # Make sure title is unique
-            original_cleaned = cleaned_title
-            counter = 1
-            while cleaned_title.lower() in seen_titles:
-                cleaned_title = f"{original_cleaned} ({counter})"
-                counter += 1
-            seen_titles.add(cleaned_title.lower())
-            
-            # Create description
-            description = self._create_description(section_text)
-            
-            outline_item = OutlineItem(
-                title=cleaned_title,
-                description=description,
-                level=1,
-                order=order
+            text = chunk.text
+            page = chunk.page_number
+            for topic, patterns in topic_patterns.items():
+                if any(re.search(p, text, flags=re.IGNORECASE) for p in patterns):
+                    if topic not in topic_candidates:
+                        topic_candidates[topic] = {
+                            "first_page": page,
+                            "snippets": [text[:300]],
+                        }
+                    else:
+                        topic_candidates[topic]["first_page"] = min(topic_candidates[topic]["first_page"], page)
+                        if len(topic_candidates[topic]["snippets"]) < 3:
+                            topic_candidates[topic]["snippets"].append(text[:300])
+
+        # Build ordered list of topics present, respecting canonical order
+        ordered_topics = [t for t in topic_order if t in topic_candidates]
+
+        # If we still have room, append additional topics by earliest page
+        if len(ordered_topics) < max_sections:
+            remaining = [
+                (t, data["first_page"]) for t, data in topic_candidates.items() if t not in ordered_topics
+            ]
+            remaining.sort(key=lambda x: x[1])
+            for t, _ in remaining:
+                if len(ordered_topics) >= max_sections:
+                    break
+                ordered_topics.append(t)
+
+        outline_items: List[OutlineItem] = []
+        order_counter = 1
+
+        # Helper to create description from snippets
+        def build_desc(snippets: List[str]) -> str:
+            joined = " ".join(snippets)
+            return self._create_description(joined)
+
+        # Create items from detected topics first
+        for topic in ordered_topics[:max_sections]:
+            data = topic_candidates[topic]
+            outline_items.append(
+                OutlineItem(
+                    title=topic,
+                    description=build_desc(data["snippets"]),
+                    level=1,
+                    order=order_counter,
+                )
             )
-            outline_items.append(outline_item)
-            logger.info(f"  Section {order}: {cleaned_title}")
-            order += 1
-        
+            order_counter += 1
+
+        logger.info(f"Generated outline with {len(outline_items)} items (content-aware ordering)")
         return outline_items
     
     def _clean_title(self, title: str) -> str:
