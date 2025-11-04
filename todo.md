@@ -10,30 +10,35 @@
 
 
 ## model/ pipeline
-- [ ] the actual content generated is still pretty shit: 
-    - [ ] very little content is generated (should be around 400-600 words) and that is also repetitive 
-    - [ ] still in bullet points instead of para 
-    - [x] output should be inside output folder (both .json & .html) 
-        - [x] use template as guide & parse infor inside it based on what it says.
- - [ ] very convuluded 'ai-esuqe' language, needs to be clearer, simpler & more natural. 
- - [ ] not sure if we need provenance (since content is short, it is easy to check if content is hallucinated or not) 
- - [ ] remove api nonsense 
- - [ ] body text & heading still dont always match sometimes 
+- [ ] the actual content generated is still kinda shit: 
+  - [x] very little content is generated and that is also repetitive 
+  - [x] still in bullet points instead of para 
+  - [x] output should be inside output folder (both .json & .html) 
+    - [x] use template as guide & parse infor inside it based on what it says.
+  - [ ] very convuluded 'ai-esuqe' language, needs to be clearer, simpler & more natural. 
+  - [ ] content is repetitve 
+  - [ ] even with gaurdrails there is hallucination sometimes 
+    - [ ] not sure if provenance even works properly
+ - [x] body text & heading still dont always match sometimes 
+- [ ] remove api nonsense ???
 
 
 ## design 
 - [x] light & dark mode for slides 
 - [x] slides template (diff layouts)
-    - [x] no of points 
-    - [ ] media + description 
+  - [x] no of points 
+  - [x] media + description 
 - [ ] interface for application 
 - [x] add favicon
 
 
 ## bugs/ improvements
 - [ ] laptop heats up soooo much sometimes (is it a memory or cpu issue?)
-- [ ] in deck.html, provencance is loaded in overline
-- [ ] headings are bold and italic when exported as svg and imported into figma 
+- [x] in deck.html, provencance is loaded in overline
+- [ ] fix svg export
+  - [x] headings are bold and italic when exported as svg and imported into figma 
+  - [ ] layout itself is different and all text is on top of each other 
+- [ ] improve project structure before building interface
 
 
 ## documentation

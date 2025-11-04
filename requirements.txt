@@ -1,14 +1,18 @@
-fastapi>=0.104.1
-uvicorn>=0.24.0
-pydantic>=2.5.0
-python-multipart>=0.0.6
-PyPDF2>=3.0.1
-# pymupdf==1.23.8  # commented out due to build issues rip
-sentence-transformers>=2.2.2
-faiss-cpu>=1.12.0
-numpy>=1.24.3
-requests>=2.31.0
-python-dotenv>=1.0.0
-click>=8.1.7
-rich>=13.7.0
-typer>=0.9.0
+fastapi>=0.104.1  # Web API framework for serving the app/backend endpoints when we build the interface
+uvicorn>=0.24.0  # ASGI server to run the FastAPI app when we build the interface
+
+pydantic>=2.5.0  # Data validation and settings models (request/response schemas)
+python-multipart>=0.0.6  # Handle multipart form uploads (e.g., PDF file uploads)
+PyPDF2>=3.0.1  # Parse/extract text and metadata from PDFs
+# pymupdf==1.23.8  # Alternative fast PDF parser/renderer (disabled due to build issues)
+
+sentence-transformers>=2.2.2  # Create text embeddings for RAG/chunk similarity
+faiss-cpu>=1.12.0  # Vector index/search over embeddings (CPU version)
+numpy>=1.24.3  # Numerical arrays and math used by embeddings/FAISS
+
+requests>=2.31.0  # HTTP client for calling external APIs/services 
+python-dotenv>=1.0.0  # Load environment variables from a .env file
+
+click>=8.1.7  # CLI utilities (dependency and helpers for command-line tools)
+rich>=13.7.0  # Pretty console output (progress bars, colors, tables)
+typer>=0.9.0  # Build the CLI commands (built on Click)

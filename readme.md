@@ -100,14 +100,19 @@ pip install -r requirements.txt
 
 Ollama lets you run AI models locally on your computer, completely free and private.
 
-**Install Ollama:**
+**Install Ollama (Homebrew):**
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
+brew install ollama
 ```
 
 **Start Ollama:**
 ```bash
 ollama serve
+```
+
+Or run it in the background so it starts automatically on login:
+```bash
+brew services start ollama
 ```
 
 **Download the AI model** (in a new terminal):
