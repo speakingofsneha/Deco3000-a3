@@ -132,6 +132,14 @@ This checks that all the components are set up correctly.
 
 ### 4. Process Your First PDF
 
+python main.py serve
+Visit http://localhost:8000 to use the interface
+
+
+OR 
+
+### 4. Process Your First PDF
+
 ```bash
 python main.py process your-document.pdf
 ```

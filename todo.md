@@ -28,8 +28,9 @@
 - [x] slides template (diff layouts)
   - [x] no of points 
   - [x] media + description 
-- [ ] interface for application 
+- [x] interface for application 
 - [x] add favicon
+- [ ] inbetween wf to edit narrative 
 
 
 ## bugs/ improvements
@@ -38,7 +39,7 @@
 - [ ] fix svg export
   - [x] headings are bold and italic when exported as svg and imported into figma 
   - [ ] layout itself is different and all text is on top of each other 
-- [ ] improve project structure before building interface
+- [ ] improve project structure 
 
 
 ## documentation

@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 import os
 import logging
 from pathlib import Path
@@ -30,6 +33,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add no-cache middleware for static files in development
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Add no-cache headers for CSS, JS, and HTML files
+        if request.url.path.endswith(('.css', '.js', '.html')):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+app.add_middleware(NoCacheMiddleware)
+
 # Initialize services
 processing_service = PDFProcessingService()
 slide_generator = SlideGenerator()
@@ -38,9 +54,39 @@ slide_generator = SlideGenerator()
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
+# Mount static files
+base_dir = Path(__file__).parent.parent
+ui_dir = base_dir / "ui"
+outputs_dir = base_dir / "outputs"
+
+if ui_dir.exists():
+    # Mount static files with no cache headers for development
+    static_files = StaticFiles(directory=str(ui_dir), html=True)
+    app.mount("/ui", static_files, name="ui")
+if outputs_dir.exists():
+    app.mount("/outputs", StaticFiles(directory=str(outputs_dir)), name="outputs")
+
+# Serve favicon
+@app.get("/favicon.png", include_in_schema=False)
+async def serve_favicon():
+    """Serve the favicon"""
+    favicon_path = base_dir / "favicon.png"
+    if favicon_path.exists():
+        return FileResponse(str(favicon_path))
+    raise HTTPException(status_code=404)
+
+# Serve index.html at root
+@app.get("/", include_in_schema=False)
+async def serve_index():
+    """Serve the main UI"""
+    index_path = ui_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    return {"message": "PDF to Slide Deck API", "version": "1.0.0"}
+
+@app.get("/api")
+async def api_info():
+    """API information endpoint"""
     return {
         "message": "PDF to Slide Deck API",
         "version": "1.0.0",

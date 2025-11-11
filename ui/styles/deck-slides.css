@@ -1,109 +1,10 @@
-/* Compiled from template.scss for direct use in the HTML */
-* { box-sizing: border-box; }
-html {
-  height: 100%;
-}
-body.app {
-  margin: 0;
-  min-height: 100%;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: #eef0f2;
-  color: #111318;
-  padding-bottom: 70px; /* Space for bottom toolbar */
-}
-
-/* Top bar */
-.topbar {
-  position: -webkit-sticky;
-  position: sticky; 
-  top: 0; 
-  z-index: 1000;
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center;
-  padding: 14px 20px;
-}
-
-.crumb {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 10px 16px; background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px; box-shadow: 0 6px 24px rgba(17,19,24,0.06); 
-  font-size: 14px; color: #657082;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-}
-.crumb__title { color: #111318; font-weight: 600; }
-
-.actions { display: inline-flex; gap: 8px; position: relative; }
-.btn {
-  appearance: none; border: 1px solid #e3e7ed; background: #ffffff; color: #111318;
-  padding: 10px 16px; border-radius: 5px; font-size: 14px;
-  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
-  cursor: pointer;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-}
-
-/* Export dropdown */
-.export-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17,19,24,0.12);
-  min-width: 160px;
-  z-index: 1001;
-  overflow: hidden;
-}
-
-.dropdown-menu.show {
-  display: block;
-}
-
-.dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: transparent;
-  color: #111318;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-}
-
-.dropdown-item:hover {
-  background: #f7f8fa;
-}
-
-.dropdown-item:first-child {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-
-.dropdown-item:last-child {
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-/* Deck grid */
-.deck {
-  width: max-content;
-  margin: 10px auto 48px;
-  display: grid; gap: 24px;
-  overflow-x: auto;
-}
+/* Deck Slide Content Styles - Inside Slide Canvas (DM Sans font) */
 
 /* Slides */
 .slide {
-  background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px;
+  background: #ffffff;
+  border: 1px solid #e3e7ed;
+  border-radius: 5px;
   padding: 12px;
   opacity: 0.4;
   transition: opacity 0.3s ease;
@@ -113,6 +14,7 @@ body.app {
 .slide--active {
   opacity: 1 !important;
 }
+
 .slide--light {
   background: #ffffff;
 }
@@ -125,17 +27,20 @@ body.app {
 .slide--title.slide--dark {
   background: #1D1A1B !important;
 }
+
 .slide--title .slide__canvas {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 80px;
 }
+
 .title__wrap {
   max-width: 880px;
   margin: 0 auto;
   text-align: center;
 }
+
 .title__heading {
   font-size: 50px;
   line-height: 1.1;
@@ -145,6 +50,7 @@ body.app {
   color: #1a1d23;
   font-family: 'DM Sans', sans-serif;
 }
+
 .title__subtitle {
   font-size: 20px;
   line-height: 1.6;
@@ -156,7 +62,7 @@ body.app {
 /* Canvas (visual placeholder rectangle) */
 .slide__canvas {
   width: 1373px;
-  height: 771px;
+  min-height: 771px;
   position: relative;
 }
 
@@ -164,6 +70,9 @@ body.app {
 .slide__content {
   padding: 64px 64px 40px 64px;
   font-family: 'DM Sans', sans-serif;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .overline {
@@ -218,9 +127,9 @@ body.app {
   order: 3;
   margin-bottom: 0;
   margin-top: 0;
-  flex: 1 1 auto; /* Grow to fill available space */
-  min-height: 450px; /* Minimum height */
-  max-height: calc(771px - 360px); /* Canvas height (771px) minus padding (104px), overline (~20px), heading (~43px), gaps (~72px), description (~120px) */
+  flex: 1 1 auto;
+  min-height: 450px;
+  max-height: 600px;
 }
 
 .slide.layout--media-above .media-description {
@@ -230,13 +139,13 @@ body.app {
   max-width: 100%;
   line-height: 1.6;
   font-size: 16px;
-  flex-shrink: 0; /* Don't shrink description */
+  flex-shrink: 0;
 }
 
 .slide.layout--media-above .points {
   order: 4;
   margin-top: 0;
-  display: none; /* Hide points on media slides */
+  display: none;
 }
 
 /* Dark mode for media placeholder */
@@ -253,110 +162,11 @@ body.app {
 }
 
 .slide__label {
-  font-size: 12px; letter-spacing: .08em; color: #1e222b; opacity: .85;
+  font-size: 12px;
+  letter-spacing: .08em;
+  color: #1e222b;
+  opacity: .85;
   user-select: none;
-}
-
-/* Bottom Toolbar */
-.bottom-toolbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px 20px;
-  background: transparent;
-  pointer-events: none;
-}
-
-.toolbar-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #f7f8fa;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  padding: 6px 8px;
-  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
-  pointer-events: auto;
-  font-family: 'Inter', sans-serif;
-}
-
-.background-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.toolbar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.15s ease;
-}
-
-
-.toolbar-dropdown-menu {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17,19,24,0.12);
-  min-width: 140px;
-  overflow: hidden;
-  z-index: 1002;
-  font-family: 'Inter', sans-serif;
-}
-
-.toolbar-dropdown-menu.show {
-  display: block;
-}
-
-.toolbar-dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: transparent;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.15s ease;
-}
-
-.toolbar-dropdown-item:hover {
-  background: #f7f8fa;
-}
-
-.toolbar-dropdown-item.active {
-  background: #f7f8fa;
-  font-weight: 500;
-}
-
-.toolbar-dropdown-item:first-child {
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-}
-
-.toolbar-dropdown-item:last-child {
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
 }
 
 /* Dark Mode Styles */
@@ -426,16 +236,19 @@ body.app {
   gap: 20px;
 }
 
-/* make points look like paragraphs by default (use your existing .body sizes) */
-.point.body { margin: 0; }
+/* make points look like paragraphs by default */
+.point.body {
+  margin: 0;
+}
 
 /* Center all content (overline, heading, points) vertically on slides */
 .slide:has(.points) .slide__content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   min-height: 100%;
+  padding-top: 80px;
 }
 
 .slide:has(.points) .overline,
@@ -517,7 +330,7 @@ body.app {
   text-align: left;
   margin-left: 0;
   margin-right: auto;
-  font-weight:500 !important;
+  font-weight: 500 !important;
 }
 
 /* Center-aligned key statement (default for 3n+1 and 3n+2) */
@@ -531,7 +344,7 @@ body.app {
   text-align: center;
   margin-left: auto;
   margin-right: auto;
-  font-weight:500 !important;
+  font-weight: 500 !important;
 }
 
 .slide:has(.points .point:only-child) .overline,
@@ -550,7 +363,7 @@ body.app {
   text-align: center;
   font-size: 36px;
   line-height: 1.2;
-  font-weight:500 !important;
+  font-weight: 500 !important;
   margin: 0;
   background: transparent;
   border: none;
@@ -600,10 +413,12 @@ body.app {
 .slide.layout--list-3 .points {
   grid-template-columns: 1fr !important;
 }
+
 .slide.layout--list-3 .points .point {
   position: relative;
   padding-left: 18px;
 }
+
 .slide.layout--list-3 .points .point::before {
   content: "?";
   position: absolute;
@@ -612,7 +427,6 @@ body.app {
   line-height: 1.6;
   color: #657082;
 }
-
 
 /* subtle card vibe for multi-point grids while keeping body styles */
 .slide:has(.points .point:nth-of-type(2)) .points .point,
@@ -642,3 +456,4 @@ body.app {
 .slide__canvas--dark.layout--list-3 .points .point::before {
   color: #9ca3af;
 }
+
