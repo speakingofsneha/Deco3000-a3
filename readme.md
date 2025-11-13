@@ -1,6 +1,6 @@
 # Reframe
 
-Reframe is a web application that converts student visual reports into into engaging case studies. Upload a PDF, review and edit the generated outline, and export your slides as PNG or SVG.
+Good case studies are a combination of narrative, information design and personality. But not everyone has the time, patience or skills to do all of that, especially after working on a gruelling project. Introducing Re-frame, an intelligent system that transforms student visual reports into meaningful case studies that reflect real thinking.
 
 ## Getting Started
 ### Prerequisites
