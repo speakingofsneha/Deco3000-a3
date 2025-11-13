@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- Cache Control Meta Tags -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Reframe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet" />
   <!-- Base Styles -->
-  <link rel="stylesheet" href="/styles/base.scss" />
+  <link rel="stylesheet" href="/styles/base.scss?v=dev" />
   <!-- Page-specific Styles -->
-  <link rel="stylesheet" href="/styles/upload.scss" />
-  <link rel="stylesheet" href="/styles/loading.scss" />
-  <link rel="stylesheet" href="/styles/edit.scss" />
+  <link rel="stylesheet" href="/styles/upload.scss?v=dev" />
+  <link rel="stylesheet" href="/styles/loading.scss?v=dev" />
+  <link rel="stylesheet" href="/styles/edit.scss?v=dev" />
   <!-- Deck Styles -->
-  <link rel="stylesheet" href="/styles/deck-ui.scss" />
-  <link rel="stylesheet" href="/styles/deck-slides.scss" />
+  <link rel="stylesheet" href="/styles/deck-ui.scss?v=dev" />
+  <link rel="stylesheet" href="/styles/deck-slides.scss?v=dev" />
   <!-- Sidebar Styles -->
-  <link rel="stylesheet" href="/styles/sidebar.scss" />
+  <link rel="stylesheet" href="/styles/sidebar.scss?v=dev" />
   <link rel="icon" type="image/png" href="/favicon.png" />
 </head>
 <body>
@@ -33,20 +37,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <!-- Services -->
-  <script src="/src/services/historyService.js"></script>
+  <script src="/src/services/historyService.js?v=dev"></script>
   
   <!-- Utils -->
-  <script src="/src/utils/deckUtils.js"></script>
+  <script src="/src/utils/deckUtils.js?v=dev"></script>
   
   <!-- Components (load in order) -->
-  <script type="text/babel" src="/src/components/HamburgerMenu.jsx"></script>
-  <script type="text/babel" src="/src/components/Sidebar.jsx"></script>
-  <script type="text/babel" src="/src/components/UploadScreen.jsx"></script>
-  <script type="text/babel" src="/src/components/LoadingScreen.jsx"></script>
-  <script type="text/babel" src="/src/components/EditScreen.jsx"></script>
-  <script type="text/babel" src="/src/components/DeckScreen.jsx"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/HamburgerMenu.jsx?v=dev"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/Sidebar.jsx?v=dev"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/UploadScreen.jsx?v=dev"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/LoadingScreen.jsx?v=dev"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/EditScreen.jsx?v=dev"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/components/DeckScreen.jsx?v=dev"></script>
   
   <!-- Main App -->
-  <script type="text/babel" src="/src/App.jsx"></script>
+  <script type="text/babel" data-presets="env,react" data-cache-bust="true" src="/src/App.jsx?v=dev"></script>
 </body>
 </html>

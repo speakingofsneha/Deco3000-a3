@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, currentScreen }) => {
             onClick={handleHomeClick}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M3 10L9 4M3 10L9 16M3 10H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M10 6V14M6 10H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span>New Document</span>
           </button>
