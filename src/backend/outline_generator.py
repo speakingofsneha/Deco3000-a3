@@ -13,6 +13,140 @@ class OutlineGenerator:
     def __init__(self):
         self.llm_service = get_llm_service()
     
+    def generate_outline_from_narrative(self, narrative: str, pdf_title: str) -> List[OutlineItem]:
+        """Generate outline structure from the narrative plan"""
+        logger.info("Generating outline from narrative plan")
+        
+        prompt = f"""You are analyzing a UX case study narrative to extract the key sections/story beats.
+
+CASE STUDY NARRATIVE:
+{narrative}
+
+YOUR TASK:
+Extract 6-10 key sections from this narrative. Each section should represent a major story beat or phase in the case study story. The sections should follow the narrative's flow and structure.
+
+REQUIREMENTS:
+1. Extract sections that align with the narrative's story structure (hero's journey, problem, research, insights, solution, testing, results, etc.)
+2. Create clear, descriptive titles for each section (e.g., "Understanding the Problem", "User Research Insights", "Design Solution", etc.)
+3. Order sections to match the narrative's flow
+4. Each section should have a brief description (1-2 sentences) that explains what content belongs in that section based on the narrative
+5. The sections should reflect the story beats in the narrative, not generic design process steps
+
+OUTPUT FORMAT:
+Return a JSON array of sections, each with:
+- "title": A clear, descriptive title for the section
+- "description": A brief description of what content belongs in this section based on the narrative
+
+Example format:
+[
+  {{"title": "Understanding the Problem", "description": "The user's challenges and pain points that motivated this project"}},
+  {{"title": "Research and Discovery", "description": "The research methods and key findings that informed the design"}},
+  ...
+]
+
+Return ONLY the JSON array, no other text."""
+
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at analyzing narratives and extracting structured outlines. You identify key story beats and create logical section divisions that reflect the narrative's flow."
+                },
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = self.llm_service.generate_chat_completion(
+                messages,
+                max_tokens=1500,
+                temperature=0.3
+            )
+            
+            # Parse JSON response
+            response = response.strip()
+            # Remove markdown code blocks if present
+            if response.startswith("```"):
+                response = response.split("```")[1]
+                if response.startswith("json"):
+                    response = response[4:]
+                response = response.strip()
+            
+            try:
+                sections = json.loads(response)
+            except json.JSONDecodeError:
+                # Try to extract JSON from response
+                json_match = re.search(r'\[.*\]', response, re.DOTALL)
+                if json_match:
+                    sections = json.loads(json_match.group())
+                else:
+                    raise ValueError("Could not parse JSON from response")
+            
+            # Convert to OutlineItem list
+            outline_items = []
+            for idx, section in enumerate(sections[:10], start=1):  # Limit to 10 sections
+                title = section.get("title", f"Section {idx}")
+                description = section.get("description", "")
+                
+                outline_items.append(
+                    OutlineItem(
+                        title=self._clean_title(title),
+                        description=description,
+                        level=1,
+                        order=idx
+                    )
+                )
+            
+            logger.info(f"Generated {len(outline_items)} outline items from narrative")
+            return outline_items
+            
+        except Exception as e:
+            logger.error(f"Error generating outline from narrative: {str(e)}")
+            # Fallback: create a simple outline from narrative structure
+            return self._create_fallback_outline_from_narrative(narrative)
+    
+    def _create_fallback_outline_from_narrative(self, narrative: str) -> List[OutlineItem]:
+        """Create a simple fallback outline by identifying key sections in the narrative"""
+        # Look for common story beats in the narrative
+        sections = []
+        narrative_lower = narrative.lower()
+        
+        # Identify story beats based on narrative content
+        story_beats = [
+            ("Problem Overview", ["problem", "challenge", "pain point", "user's journey", "hero"]),
+            ("Research and Discovery", ["research", "interview", "survey", "understand", "discover"]),
+            ("Key Insights", ["insight", "finding", "learned", "discovered", "revealed"]),
+            ("Design Solution", ["solution", "design", "approach", "decision", "breakthrough"]),
+            ("Implementation", ["prototype", "wireframe", "mockup", "build", "create"]),
+            ("Testing and Evaluation", ["test", "evaluation", "feedback", "iteration", "result"]),
+            ("Results and Impact", ["result", "impact", "outcome", "success", "metric"]),
+            ("Next Steps", ["next", "future", "roadmap", "improvement"])
+        ]
+        
+        order = 1
+        for title, keywords in story_beats:
+            if any(keyword in narrative_lower for keyword in keywords):
+                # Extract a relevant description from narrative context
+                desc = f"Content related to {title.lower()} as described in the narrative"
+                sections.append(
+                    OutlineItem(
+                        title=title,
+                        description=desc,
+                        level=1,
+                        order=order
+                    )
+                )
+                order += 1
+        
+        if not sections:
+            # Ultimate fallback: create basic structure
+            sections = [
+                OutlineItem(title="Introduction", description="Project introduction and context", level=1, order=1),
+                OutlineItem(title="Research", description="Research findings and insights", level=1, order=2),
+                OutlineItem(title="Solution", description="Design solution and approach", level=1, order=3),
+                OutlineItem(title="Results", description="Outcomes and impact", level=1, order=4),
+            ]
+        
+        return sections
+    
     def generate_outline(self, pdf_title: str, chunks: List[Chunk], max_sections: int = 8) -> List[OutlineItem]:
         """Generate outline with content-aware ordering and guaranteed coverage of key design topics.
         - Derive topics from content (not PDF headers)

@@ -1,17 +1,21 @@
+@use 'variables' as *;
+
 /* Deck UI Styles - Topbar, Buttons, Toolbars (Inter font) */
 
 /* Deck screen container */
 #deck-screen {
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: $color-bg;
 }
 
 body.app {
   margin: 0;
   min-height: 100%;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: #eef0f2;
-  color: #111318;
+  background: $color-bg;
+  color: $color-text-dark;
   padding-bottom: 70px; /* Space for bottom toolbar */
+  line-height: 1.5;
 }
 
 /* Top bar */
@@ -24,6 +28,7 @@ body.app {
   justify-content: space-between;
   align-items: center;
   padding: 14px 20px;
+  background: $color-bg;
 }
 
 .crumb {
@@ -31,17 +36,24 @@ body.app {
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  box-shadow: 0 6px 24px rgba(17, 19, 24, 0.06);
+  background: rgba(148, 149, 146, 0.05);
+  border: 1px solid $color-stroke;
+  border-radius: 6px;
   font-size: 14px;
-  color: #657082;
+  color: $color-text-light;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.crumb:hover {
+  border-color: $color-text-dark;
+  background: rgba(148, 149, 146, 0.08);
+  transform: translateY(-1px);
 }
 
 .crumb__title {
-  color: #111318;
+  color: $color-text-dark;
   font-weight: 600;
 }
 
@@ -53,15 +65,26 @@ body.app {
 
 .btn {
   appearance: none;
-  border: 1px solid #e3e7ed;
-  background: #ffffff;
-  color: #111318;
+  border: 1px solid $color-stroke;
+  background: rgba(148, 149, 146, 0.05);
+  color: $color-text-dark;
   padding: 10px 16px;
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 14px;
-  box-shadow: 0 6px 24px rgba(17, 19, 24, 0.06);
   cursor: pointer;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover {
+  border-color: $color-text-dark;
+  background: rgba(148, 149, 146, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 /* Export dropdown */
@@ -75,10 +98,9 @@ body.app {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17, 19, 24, 0.12);
+  background: $color-bg;
+  border: 1px solid $color-stroke;
+  border-radius: 6px;
   min-width: 160px;
   z-index: 1001;
   overflow: hidden;
@@ -94,26 +116,27 @@ body.app {
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: #111318;
+  color: $color-text-dark;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
 }
 
 .dropdown-item:hover {
-  background: #f7f8fa;
+  background: rgba(148, 149, 146, 0.1);
 }
 
 .dropdown-item:first-child {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
 }
 
 .dropdown-item:last-child {
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
 /* Deck grid */
@@ -144,13 +167,18 @@ body.app {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #f7f8fa;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
+  background: rgba(148, 149, 146, 0.05);
+  border: 1px solid $color-stroke;
+  border-radius: 6px;
   padding: 6px 8px;
-  box-shadow: 0 6px 24px rgba(17, 19, 24, 0.06);
   pointer-events: auto;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-group:hover {
+  border-color: $color-text-dark;
+  background: rgba(148, 149, 146, 0.08);
 }
 
 .background-dropdown {
@@ -165,12 +193,21 @@ body.app {
   padding: 8px 12px;
   background: transparent;
   border: none;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
+  color: $color-text-dark;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.15s ease;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.5;
+}
+
+.toolbar-btn:hover {
+  background: rgba(148, 149, 146, 0.1);
+}
+
+.toolbar-btn:active {
+  background: rgba(148, 149, 146, 0.15);
 }
 
 .toolbar-dropdown-menu {
@@ -178,14 +215,13 @@ body.app {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17, 19, 24, 0.12);
+  background: $color-bg;
+  border: 1px solid $color-stroke;
+  border-radius: 6px;
   min-width: 140px;
   overflow: hidden;
   z-index: 1002;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 .toolbar-dropdown-menu.show {
@@ -198,31 +234,32 @@ body.app {
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
+  color: $color-text-dark;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.15s ease;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.5;
 }
 
 .toolbar-dropdown-item:hover {
-  background: #f7f8fa;
+  background: rgba(148, 149, 146, 0.1);
 }
 
 .toolbar-dropdown-item.active {
-  background: #f7f8fa;
+  background: rgba(148, 149, 146, 0.15);
   font-weight: 500;
+  color: $color-text-dark;
 }
 
 .toolbar-dropdown-item:first-child {
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
 }
 
 .toolbar-dropdown-item:last-child {
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
-

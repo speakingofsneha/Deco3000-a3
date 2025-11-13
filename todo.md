@@ -15,12 +15,11 @@
   - [x] still in bullet points instead of para 
   - [x] output should be inside output folder (both .json & .html) 
     - [x] use template as guide & parse infor inside it based on what it says.
+  - [x] body text & heading still dont always match sometimes 
+- [x] edit narrative before content generation
   - [ ] very convuluded 'ai-esuqe' language, needs to be clearer, simpler & more natural. 
   - [ ] content is repetitve 
-  - [ ] even with gaurdrails there is hallucination sometimes 
-    - [ ] not sure if provenance even works properly
- - [x] body text & heading still dont always match sometimes 
-- [ ] remove api nonsense ???
+  - [ ] even with gaurdrails there is SOO much hallucination  
 
 
 ## design 
@@ -30,7 +29,8 @@
   - [x] media + description 
 - [x] interface for application 
 - [x] add favicon
-- [ ] inbetween wf to edit narrative 
+- [x] inbetween wf to edit narrative 
+- [x] react components + scss
 
 
 ## bugs/ improvements
@@ -39,10 +39,11 @@
 - [ ] fix svg export
   - [x] headings are bold and italic when exported as svg and imported into figma 
   - [ ] layout itself is different and all text is on top of each other 
-- [ ] improve project structure 
+- [x] improve project structure 
+- [x] change favicon 
 
 
 ## documentation
 - [ ] finish readme
 - [ ] make changelog
-- [ ] comment code!! <- do last
+- [ ] comment code!!

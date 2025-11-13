@@ -1,211 +1,129 @@
 # Reframe
 
-Reframe is an AI-powered tool that transforms PDF documents into structured case study decks. Give it a report, paper, or any document in PDF format, and it will automatically create a presentation-ready slide deck with key points, organized sections, and proper citations.
+Reframe is a web application that converts student visual reports into into engaging case studies. Upload a PDF, review and edit the generated outline, and export your slides as PNG or SVG.
 
-## What It Does
+## Getting Started
+### Prerequisites
 
-When you have a long PDF document?maybe a research paper, a report, or a case study?Reframe reads through it, understands the content, and creates a slide deck that captures the most important information. It does this by:
+- Python 3.8 or higher
+- Node.js (for SCSS compilation, or use the built-in SCSS middleware)
+- `sass` compiler (install with `npm install -g sass` or use the middleware)
 
-1. **Reading your PDF** - Extracts text and identifies the structure
-2. **Understanding the content** - Uses AI to understand what the document is about
-3. **Creating an outline** - Generates a logical structure for your slides
-4. **Finding key points** - Uses retrieval-augmented generation (RAG) to pull out important information from different parts of the document
-5. **Building slides** - Organizes everything into a clean, structured slide deck
+### Installation
 
-The result is a JSON file that you can view in your browser using the included slide viewer, or use programmatically in your own applications.
+1. **Clone or download this repository**
 
-## Requirements
+2. **Create a virtual environment** (recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-- **Python 3.8 or higher**
-- **Ollama** - A free, local AI server that runs on your computer
-- **At least 8GB of RAM** (to run the AI model)
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Install on macOS (step-by-step)
+4. **Set up environment variables** (if needed):
+   Create a `.env` file in the root directory with your API keys if the application requires them.
 
-Follow these steps if you're on macOS.
+### Running the Application
 
-### 0) Prerequisites: Homebrew (optional but recommended)
+1. **Start the server**:
+   ```bash
+   python main.py serve
+   ```
 
-- If you don't have Homebrew:
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-- Then follow the on-screen instructions to add Homebrew to your shell.
+   Or with custom host/port:
+   ```bash
+   python main.py serve --host 0.0.0.0 --port 8000
+   ```
 
-### 1) Install Python and create a virtual environment
+2. **Open your browser**:
+   Navigate to `http://localhost:8000`
 
-- Check Python:
-```bash
-python3 --version
-```
-- If missing/outdated, install via Homebrew:
-```bash
-brew install python@3
-```
-- Create and activate a virtual environment in the project root:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-```
-
-### 2) Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3) Install Ollama
-
-Pick ONE of the options below.
-
-- Using Homebrew (recommended):
-```bash
-brew install ollama
-```
-
-- Or download the macOS app: open `https://ollama.com/download` and install the .dmg, then launch Ollama.
-
-### 4) Start Ollama and download a model
-
-- Start the service (if using CLI install):
-```bash
-ollama serve
-```
-
-- In a new terminal, pull a model (first time only):
-```bash
-ollama pull llama3
-```
-
-### 5) Verify everything works
-
-```bash
-python --version
-ollama --version
-python test_system.py
-```
-
-If the test passes, you're ready to process PDFs.
-
-## Quick Start
-
-### 1. Install Python Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Set Up Ollama
-
-Ollama lets you run AI models locally on your computer, completely free and private.
-
-**Install Ollama (Homebrew):**
-```bash
-brew install ollama
-```
-
-**Start Ollama:**
-```bash
-ollama serve
-```
-
-Or run it in the background so it starts automatically on login:
-```bash
-brew services start ollama
-```
-
-**Download the AI model** (in a new terminal):
-```bash
-ollama pull llama3
-```
-
-This will download the Llama 3 model (about 4GB). The download only happens once.
-
-### 3. Test Everything Works
-
-```bash
-python test_system.py
-```
-
-This checks that all the components are set up correctly.
-
-### 4. Process Your First PDF
-
-python main.py serve
-Visit http://localhost:8000 to use the interface
-
-
-OR 
-
-### 4. Process Your First PDF
-
-```bash
-python main.py process your-document.pdf
-```
-
-That's it! Reframe will process your PDF and save a slide deck as `outputs/your-document.json`.
-
-### 5. View Your Slides
-
-Open `ui/deck.html` in your browser (using a local web server if needed). It will automatically load the most recently processed slide deck, or you can specify a file with `?file=outputs/your-document.json`.
-
-## Usage
-
-### Basic Processing
-
-```bash
-python main.py process document.pdf
-```
-
-### Custom Options
-
-You can adjust how Reframe processes your document:
-
-```bash
-python main.py process document.pdf --max-chunks 500 --chunk-size 300 --overlap 25
-```
-
-- `--max-chunks`: How many text segments to analyze (default: 1000)
-- `--chunk-size`: Size of each text segment (default: 500)
-- `--overlap`: How much text overlaps between segments (default: 50)
-
-### View Statistics
-
-See details about a generated slide deck:
-
-```bash
-python main.py stats outputs/document.json
-```
-
+3. **Upload a PDF**:
+   - Click the upload area or drag and drop a PDF file
+   - Click "Reframe it" to start processing
 
 ## How It Works
-Reframe processes documents in five main steps:
-1. **PDF Parsing** - Extracts all text and basic structure from your PDF
-2. **Text Chunking** - Breaks the document into overlapping segments so nothing gets missed
-3. **Embedding** - Converts text into numerical vectors that capture meaning (stored using FAISS for fast searching)
-4. **Outline Generation** - Uses AI to create a logical structure based on the entire document
-5. **Content Generation** - For each section in the outline, searches for relevant information in your document and generates bullet points with citations
 
-The whole process happens locally on your computer so your documents never leave your machine.
-
-
-
-## Troubleshooting
-**Ollama won't start?** Make sure you've installed it correctly and check that no other application is using port 11434.
-**Out of memory errors?** Try reducing `--max-chunks` or `--chunk-size` to process smaller amounts of text at once.
-**Slides look incomplete?** Increase the `--max-chunks` parameter to analyze more of the document.
-
+1. **Upload**: Select a PDF file from your computer
+2. **Processing**: The app extracts text, generates an outline, and creates a narrative plan
+3. **Review**: Edit the narrative and adjust the tone if needed
+4. **Generate**: Create your slide deck with the customized content
+5. **Export**: Download individual slides or the entire deck as PNG or SVG
 
 ## Project Structure
-- `src/` - Core processing modules
-  - `pdf_parser.py` - PDF text extraction
-  - `chunking_embedding.py` - Text chunking and vector embeddings
-  - `outline_generator.py` - AI-powered outline creation
-  - `rag_system.py` - Retrieval and content generation
-  - `slide_generator.py` - Slide deck creation
-  - `processing_service.py` - Main pipeline orchestration
-  - `cli.py` - Command-line interface
-- `ui/` - Web viewer for slide decks
-- `outputs/` - Generated slide decks (JSON files)
-- `faiss_index/` - Stored vector embeddings for document search
+
+```
+.
+├── main.py                 # Entry point for the CLI
+├── public/                 # Static files
+│   └── index.html          # Main HTML file
+├── src/                    # Source code
+│   ├── backend/            # Python backend
+│   │   ├── api.py          # FastAPI routes and middleware
+│   │   ├── processing_service.py  # PDF processing logic
+│   │   ├── slide_generator.py     # Slide generation
+│   │   └── ...             # Other backend modules
+│   ├── components/         # React components
+│   │   ├── UploadScreen.jsx
+│   │   ├── EditScreen.jsx
+│   │   ├── DeckScreen.jsx
+│   │   ├── Sidebar.jsx
+│   │   └── ...
+│   ├── styles/            # SCSS stylesheets
+│   │   ├── base.scss
+│   │   ├── upload.scss
+│   │   └── ...
+│   ├── services/           # JavaScript services
+│   │   └── historyService.js
+│   ├── utils/              # Utility functions
+│   │   └── deckUtils.js
+│   └── App.jsx             # Main React app
+├── uploads/                # Uploaded PDF files
+├── outputs/                # Generated slide decks
+└── requirements.txt        # Python dependencies
+```
+
+## Development
+
+### SCSS Compilation
+
+The application uses SCSS middleware that automatically compiles `.scss` files on-the-fly. No manual compilation needed during development.
+
+If you prefer manual compilation:
+```bash
+sass src/styles/base.scss:src/styles/base.css
+```
+
+### Making Changes
+
+- **Frontend**: Edit React components in `src/components/` or styles in `src/styles/`
+- **Backend**: Modify Python files in `src/backend/`
+- The server auto-reloads on Python file changes (with `--reload` flag)
+- Refresh your browser to see frontend changes (no-cache headers are set for development)
+
+### CLI Commands
+The application also supports command-line usage:
+
+```bash
+# Process a PDF file directly
+python main.py process <pdf_file> [options]
+
+# List slides from a generated JSON file
+python main.py list-slides <json_file>
+
+# Get statistics from a slide deck
+python main.py stats <json_file>
+```
+
+## Technologies Used
+- **Frontend**: React (via Babel Standalone), SCSS
+- **Backend**: FastAPI, Python
+- **AI/ML**: Sentence Transformers, FAISS (for embeddings and similarity search)
+- **PDF Processing**: PyPDF2
+- **Styling**: SCSS with custom design system
+
+

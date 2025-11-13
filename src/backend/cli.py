@@ -195,7 +195,7 @@ def serve(
     console.print(f"[green]Starting server on {host}:{port}[/green]")
     
     import uvicorn
-    uvicorn.run("src.api:app", host=host, port=port, reload=True)
+    uvicorn.run("src.backend.api:app", host=host, port=port, reload=True)
 
 if __name__ == "__main__":
     app()

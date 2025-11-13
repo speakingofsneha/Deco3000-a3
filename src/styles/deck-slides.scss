@@ -1,9 +1,24 @@
 /* Deck Slide Content Styles - Inside Slide Canvas (DM Sans font) */
 
+// Slide-specific colors (separate from UI design system)
+$color-slide-bg: #ffffff;
+$color-slide-border: #e3e7ed;
+$color-slide-dark-bg: #1D1A1B;
+$color-slide-dark-bg-alt: #131313;
+$color-slide-dark-border: #3a3638;
+$color-slide-text: #1a1d23;
+$color-slide-text-secondary: #525c6a;
+$color-slide-text-light: #EEEEEE;
+$color-slide-placeholder: #d9d9d9;
+$color-slide-card-bg: #f7f8fa;
+$color-slide-card-dark-bg: #1f1f1f;
+$color-slide-text-muted: #657082;
+$color-slide-text-muted-dark: #9ca3af;
+
 /* Slides */
 .slide {
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
+  background: $color-slide-bg;
+  border: 1px solid $color-slide-border;
   border-radius: 5px;
   padding: 12px;
   opacity: 0.4;
@@ -16,16 +31,16 @@
 }
 
 .slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 /* Title slide (first slide) */
 .slide--title.slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 .slide--title.slide--dark {
-  background: #1D1A1B !important;
+  background: $color-slide-dark-bg !important;
 }
 
 .slide--title .slide__canvas {
@@ -47,14 +62,14 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0 0 12px 0;
-  color: #1a1d23;
+  color: $color-slide-text;
   font-family: 'DM Sans', sans-serif;
 }
 
 .title__subtitle {
   font-size: 20px;
   line-height: 1.6;
-  color: #525c6a;
+  color: $color-slide-text-secondary;
   margin: 0;
   font-family: 'DM Sans', sans-serif;
 }
@@ -98,7 +113,7 @@
 .media-placeholder {
   width: 100%;
   height: 800px;
-  background: #d9d9d9;
+  background: $color-slide-placeholder;
   border-radius: 5px;
   flex-shrink: 0;
 }
@@ -152,13 +167,13 @@
 .slide--dark .media-placeholder,
 .slide__canvas--dark .media-placeholder {
   background: #2a2a2a;
-  border: 1px solid #3a3638;
+  border: 1px solid $color-slide-dark-border;
 }
 
 /* Dark mode for media description */
 .slide--dark .media-description,
 .slide__canvas--dark .media-description {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
 }
 
 .slide__label {
@@ -171,59 +186,59 @@
 
 /* Dark Mode Styles */
 .slide--dark {
-  background: #131313 !important;
-  border-color: #3a3638 !important;
+  background: $color-slide-dark-bg-alt !important;
+  border-color: $color-slide-dark-border !important;
 }
 
 .slide--dark .slide__canvas {
-  background: #131313;
+  background: $color-slide-dark-bg-alt;
 }
 
 .slide__canvas--dark {
-  background: #131313 !important;
+  background: $color-slide-dark-bg-alt !important;
 }
 
 .slide--dark .slide__content,
 .slide__canvas--dark .slide__content {
-  color: #EEEEEE;
+  color: $color-slide-text-light;
 }
 
 .slide--dark .heading,
 .slide__canvas--dark .heading {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
   font-weight: 500 !important;
 }
 
 .slide--dark .body,
 .slide__canvas--dark .body {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
 }
 
 .slide--dark .overline,
 .slide__canvas--dark .overline {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
   opacity: 0.7;
 }
 
 .slide--dark .title__heading,
 .slide__canvas--dark .title__heading {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
   font-weight: 500 !important;
 }
 
 .slide--dark .title__subtitle,
 .slide__canvas--dark .title__subtitle {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
   opacity: 0.8;
 }
 
 /* Light Mode Styles (default) */
 .slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 .slide__canvas--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 /* ---------------------------------------------
@@ -425,14 +440,14 @@
   left: 0;
   top: 0;
   line-height: 1.6;
-  color: #657082;
+  color: $color-slide-text-muted;
 }
 
 /* subtle card vibe for multi-point grids while keeping body styles */
 .slide:has(.points .point:nth-of-type(2)) .points .point,
 .slide:has(.points .point:nth-of-type(3)) .points .point {
-  background: #f7f8fa;
-  border: 1px solid #e3e7ed;
+  background: $color-slide-card-bg;
+  border: 1px solid $color-slide-border;
   border-radius: 5px;
   padding: 16px;
 }
@@ -440,20 +455,20 @@
 /* Dark mode styles for points */
 .slide--dark .point,
 .slide__canvas--dark .point {
-  color: #EEEEEE !important;
+  color: $color-slide-text-light !important;
 }
 
 .slide--dark:has(.points .point:nth-of-type(2)) .points .point,
 .slide--dark:has(.points .point:nth-of-type(3)) .points .point,
 .slide__canvas--dark:has(.points .point:nth-of-type(2)) .points .point,
 .slide__canvas--dark:has(.points .point:nth-of-type(3)) .points .point {
-  background: #1f1f1f;
-  border: 1px solid #3a3638;
-  color: #EEEEEE !important;
+  background: $color-slide-card-dark-bg;
+  border: 1px solid $color-slide-dark-border;
+  color: $color-slide-text-light !important;
 }
 
 .slide--dark.layout--list-3 .points .point::before,
 .slide__canvas--dark.layout--list-3 .points .point::before {
-  color: #9ca3af;
+  color: $color-slide-text-muted-dark;
 }
 

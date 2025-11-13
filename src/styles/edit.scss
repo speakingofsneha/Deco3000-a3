@@ -1,0 +1,182 @@
+@use 'variables' as *;
+
+/* Edit/Review Screen Styles */
+
+.edit-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $color-bg;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.edit-content {
+  flex: 1;
+  padding: 60px 24px 140px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.narrative-wrapper {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.review-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: $color-text-dark;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.review-subtitle {
+  font-size: 16px;
+  color: $color-text-light;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.narrative-textarea {
+  width: 100%;
+  max-width: 900px;
+  min-height: calc(100vh - 280px);
+  padding: 24px;
+  border: 1px solid $color-stroke;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: $color-text-dark;
+  resize: none;
+  line-height: 1.5;
+  background: rgba(148, 149, 146, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 0;
+}
+
+.narrative-textarea:hover {
+  border-color: rgba(55, 55, 55, 0.3);
+  background: rgba(148, 149, 146, 0.06);
+}
+
+.narrative-textarea:focus {
+  outline: none;
+  border-color: $color-text-dark;
+  background: rgba(148, 149, 146, 0.08);
+  transform: scale(1.01);
+}
+
+.narrative-textarea::placeholder {
+  color: $color-text-light;
+}
+
+.edit-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg;
+  border-top: 1px solid $color-stroke;
+  border-radius: 12px 12px 0 0;
+  padding: 12px 24px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-label {
+  font-size: 13px;
+  color: $color-text-light;
+  font-weight: 500;
+  line-height: 1.5;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.control-select {
+  padding: 6px 10px;
+  border: 1px solid $color-stroke;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: $color-text-dark;
+  cursor: pointer;
+  min-width: 100px;
+  line-height: 1.5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #FFFFFF;
+}
+
+.control-select:hover {
+  border-color: $color-text-dark;
+  transform: translateY(-1px);
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: $color-text-dark;
+  transform: translateY(-1px);
+}
+
+.continue-button {
+  padding: 6px 16px;
+  background: $color-text-dark;
+  color: $color-bg;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.continue-button:hover:not(:disabled)::before {
+  width: 200px;
+  height: 200px;
+}
+
+.continue-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+}
+
+.continue-button:active:not(:disabled) {
+  transform: translateY(0);
+  transition: transform 0.1s;
+}
+
+.continue-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

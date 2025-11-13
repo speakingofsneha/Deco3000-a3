@@ -1,42 +1,77 @@
-/* Compiled from template.scss for direct use in the HTML */
-* { box-sizing: border-box; }
+/* Deck Styles - Combined UI and Slide Styles */
+
+// Legacy color variables (different from design system - may need updating)
+$color-legacy-bg: #eef0f2;
+$color-legacy-text: #111318;
+$color-legacy-text-muted: #657082;
+$color-legacy-border: #e3e7ed;
+$color-legacy-card-bg: #f7f8fa;
+$color-legacy-shadow: rgba(17, 19, 24, 0.06);
+$color-legacy-shadow-strong: rgba(17, 19, 24, 0.12);
+
+* {
+  box-sizing: border-box;
+}
+
 html {
   height: 100%;
 }
+
 body.app {
   margin: 0;
   min-height: 100%;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: #eef0f2;
-  color: #111318;
+  background: $color-legacy-bg;
+  color: $color-legacy-text;
   padding-bottom: 70px; /* Space for bottom toolbar */
 }
 
 /* Top bar */
 .topbar {
   position: -webkit-sticky;
-  position: sticky; 
-  top: 0; 
+  position: sticky;
+  top: 0;
   z-index: 1000;
-  display: flex; 
-  justify-content: space-between; 
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 14px 20px;
 }
 
 .crumb {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 10px 16px; background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px; box-shadow: 0 6px 24px rgba(17,19,24,0.06); 
-  font-size: 14px; color: #657082;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #FFFFFF;
+  border: 1px solid $color-legacy-border;
+  border-radius: 5px;
+  box-shadow: 0 6px 24px $color-legacy-shadow;
+  font-size: 14px;
+  color: $color-legacy-text-muted;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
-.crumb__title { color: #111318; font-weight: 600; }
 
-.actions { display: inline-flex; gap: 8px; position: relative; }
+.crumb__title {
+  color: $color-legacy-text;
+  font-weight: 600;
+}
+
+.actions {
+  display: inline-flex;
+  gap: 8px;
+  position: relative;
+}
+
 .btn {
-  appearance: none; border: 1px solid #e3e7ed; background: #ffffff; color: #111318;
-  padding: 10px 16px; border-radius: 5px; font-size: 14px;
-  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
+  appearance: none;
+  border: 1px solid $color-legacy-border;
+  background: #FFFFFF;
+  color: $color-legacy-text;
+  padding: 10px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  box-shadow: 0 6px 24px $color-legacy-shadow;
   cursor: pointer;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
@@ -52,10 +87,10 @@ body.app {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
+  background: #FFFFFF;
+  border: 1px solid $color-legacy-border;
   border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17,19,24,0.12);
+  box-shadow: 0 8px 24px $color-legacy-shadow-strong;
   min-width: 160px;
   z-index: 1001;
   overflow: hidden;
@@ -71,7 +106,7 @@ body.app {
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: #111318;
+  color: $color-legacy-text;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
@@ -80,7 +115,7 @@ body.app {
 }
 
 .dropdown-item:hover {
-  background: #f7f8fa;
+  background: $color-legacy-card-bg;
 }
 
 .dropdown-item:first-child {
@@ -97,13 +132,16 @@ body.app {
 .deck {
   width: max-content;
   margin: 10px auto 48px;
-  display: grid; gap: 24px;
+  display: grid;
+  gap: 24px;
   overflow-x: auto;
 }
 
 /* Slides */
 .slide {
-  background: #ffffff; border: 1px solid #e3e7ed; border-radius: 5px;
+  background: $color-slide-bg;
+  border: 1px solid $color-slide-border;
+  border-radius: 5px;
   padding: 12px;
   opacity: 0.4;
   transition: opacity 0.3s ease;
@@ -113,38 +151,43 @@ body.app {
 .slide--active {
   opacity: 1 !important;
 }
+
 .slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 /* Title slide (first slide) */
 .slide--title.slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 .slide--title.slide--dark {
-  background: #1D1A1B !important;
+  background: $color-slide-dark-bg !important;
 }
+
 .slide--title .slide__canvas {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 80px;
 }
+
 .title__wrap {
   max-width: 880px;
   margin: 0 auto;
   text-align: center;
 }
+
 .title__heading {
   font-size: 50px;
   line-height: 1.1;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0 0 12px 0;
-  color: #1a1d23;
+  color: $color-slide-text;
   font-family: 'DM Sans', sans-serif;
 }
+
 .title__subtitle {
   font-size: 20px;
   line-height: 1.6;
@@ -253,7 +296,10 @@ body.app {
 }
 
 .slide__label {
-  font-size: 12px; letter-spacing: .08em; color: #1e222b; opacity: .85;
+  font-size: 12px;
+  letter-spacing: .08em;
+  color: #1e222b;
+  opacity: .85;
   user-select: none;
 }
 
@@ -276,13 +322,13 @@ body.app {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #f7f8fa;
-  border: 1px solid #e3e7ed;
+  background: $color-legacy-card-bg;
+  border: 1px solid $color-legacy-border;
   border-radius: 5px;
   padding: 6px 8px;
-  box-shadow: 0 6px 24px rgba(17,19,24,0.06);
+  box-shadow: 0 6px 24px $color-legacy-shadow;
   pointer-events: auto;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 .background-dropdown {
@@ -297,28 +343,27 @@ body.app {
   padding: 8px 12px;
   background: transparent;
   border: none;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
+  color: $color-legacy-text;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.15s ease;
 }
 
-
 .toolbar-dropdown-menu {
   display: none;
   position: absolute;
   bottom: calc(100% + 8px);
   left: 0;
-  background: #ffffff;
-  border: 1px solid #e3e7ed;
+  background: #FFFFFF;
+  border: 1px solid $color-legacy-border;
   border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(17,19,24,0.12);
+  box-shadow: 0 8px 24px $color-legacy-shadow-strong;
   min-width: 140px;
   overflow: hidden;
   z-index: 1002;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 .toolbar-dropdown-menu.show {
@@ -331,8 +376,8 @@ body.app {
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: #111318;
-  font-family: 'Inter', sans-serif;
+  color: $color-legacy-text;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
@@ -341,11 +386,11 @@ body.app {
 }
 
 .toolbar-dropdown-item:hover {
-  background: #f7f8fa;
+  background: $color-legacy-card-bg;
 }
 
 .toolbar-dropdown-item.active {
-  background: #f7f8fa;
+  background: $color-legacy-card-bg;
   font-weight: 500;
 }
 
@@ -409,11 +454,11 @@ body.app {
 
 /* Light Mode Styles (default) */
 .slide--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 .slide__canvas--light {
-  background: #ffffff;
+  background: $color-slide-bg;
 }
 
 /* ---------------------------------------------
@@ -427,7 +472,9 @@ body.app {
 }
 
 /* make points look like paragraphs by default (use your existing .body sizes) */
-.point.body { margin: 0; }
+.point.body {
+  margin: 0;
+}
 
 /* Center all content (overline, heading, points) vertically on slides */
 .slide:has(.points) .slide__content {
@@ -517,7 +564,7 @@ body.app {
   text-align: left;
   margin-left: 0;
   margin-right: auto;
-  font-weight:500 !important;
+  font-weight: 500 !important;
 }
 
 /* Center-aligned key statement (default for 3n+1 and 3n+2) */
@@ -531,7 +578,7 @@ body.app {
   text-align: center;
   margin-left: auto;
   margin-right: auto;
-  font-weight:500 !important;
+  font-weight: 500 !important;
 }
 
 .slide:has(.points .point:only-child) .overline,
@@ -550,7 +597,7 @@ body.app {
   text-align: center;
   font-size: 36px;
   line-height: 1.2;
-  font-weight:500 !important;
+  font-weight: 500 !important;
   margin: 0;
   background: transparent;
   border: none;
@@ -600,25 +647,26 @@ body.app {
 .slide.layout--list-3 .points {
   grid-template-columns: 1fr !important;
 }
+
 .slide.layout--list-3 .points .point {
   position: relative;
   padding-left: 18px;
 }
+
 .slide.layout--list-3 .points .point::before {
   content: "?";
   position: absolute;
   left: 0;
   top: 0;
   line-height: 1.6;
-  color: #657082;
+  color: $color-legacy-text-muted;
 }
-
 
 /* subtle card vibe for multi-point grids while keeping body styles */
 .slide:has(.points .point:nth-of-type(2)) .points .point,
 .slide:has(.points .point:nth-of-type(3)) .points .point {
-  background: #f7f8fa;
-  border: 1px solid #e3e7ed;
+  background: $color-legacy-card-bg;
+  border: 1px solid $color-legacy-border;
   border-radius: 5px;
   padding: 16px;
 }
@@ -642,3 +690,4 @@ body.app {
 .slide__canvas--dark.layout--list-3 .points .point::before {
   color: #9ca3af;
 }
+

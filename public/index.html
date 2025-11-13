@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <!-- Base Styles -->
+  <link rel="stylesheet" href="/styles/base.scss" />
+  <!-- Page-specific Styles -->
+  <link rel="stylesheet" href="/styles/upload.scss" />
+  <link rel="stylesheet" href="/styles/loading.scss" />
+  <link rel="stylesheet" href="/styles/edit.scss" />
+  <!-- Deck Styles -->
+  <link rel="stylesheet" href="/styles/deck-ui.scss" />
+  <link rel="stylesheet" href="/styles/deck-slides.scss" />
+  <!-- Sidebar Styles -->
+  <link rel="stylesheet" href="/styles/sidebar.scss" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- External libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <!-- Services -->
+  <script src="/src/services/historyService.js"></script>
+  
+  <!-- Utils -->
+  <script src="/src/utils/deckUtils.js"></script>
+  
+  <!-- Components (load in order) -->
+  <script type="text/babel" src="/src/components/HamburgerMenu.jsx"></script>
+  <script type="text/babel" src="/src/components/Sidebar.jsx"></script>
+  <script type="text/babel" src="/src/components/UploadScreen.jsx"></script>
+  <script type="text/babel" src="/src/components/LoadingScreen.jsx"></script>
+  <script type="text/babel" src="/src/components/EditScreen.jsx"></script>
+  <script type="text/babel" src="/src/components/DeckScreen.jsx"></script>
+  
+  <!-- Main App -->
+  <script type="text/babel" src="/src/App.jsx"></script>
+</body>
+</html>

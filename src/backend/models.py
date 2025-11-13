@@ -52,3 +52,21 @@ class PDFProcessingResponse(BaseModel):
     message: str
     slide_deck: Optional[SlideDeck] = None
     processing_time: float = 0.0
+
+class OutlineContentResponse(BaseModel):
+    success: bool
+    message: str
+    pdf_title: str
+    outline: List[OutlineItem]
+    narrative_plan: str  # Initial narrative plan for user to edit
+    bullets_data: Dict[str, List[BulletPoint]] = {}  # Will be generated after user edits narrative
+    processing_time: float = 0.0
+
+class RegenerateContentRequest(BaseModel):
+    pdf_path: str
+    outline: List[OutlineItem]
+    narrative: Optional[str] = None
+    tone: Optional[str] = None
+    max_chunks: int = 1500
+    chunk_size: int = 400
+    overlap: int = 100
