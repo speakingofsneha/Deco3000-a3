@@ -1,11 +1,10 @@
 // Loading Screen Component
-const LoadingScreen = ({ message = 'Processing your document' }) => {
+const LoadingScreen = ({ title = 'Generating outline', message = '' }) => {
   return (
     <div className="loading-screen">
       <div className="loading-content">
         <div className="loading-spinner"></div>
-        <h2 className="loading-title">Processing your document</h2>
-        <p className="loading-message">{message}</p>
+        {title && <h2 className="loading-title">{title}</h2>}
       </div>
     </div>
   );

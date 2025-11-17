@@ -44,8 +44,8 @@ class SlideDeck(BaseModel):
 class PDFProcessingRequest(BaseModel):
     pdf_path: str
     max_chunks: int = 1500
-    chunk_size: int = 400
-    overlap: int = 100
+    chunk_size: int = 2000  # Larger chunks for better context
+    overlap: int = 200  # Reduced overlap since we want fewer chunks
 
 class PDFProcessingResponse(BaseModel):
     success: bool
@@ -68,5 +68,5 @@ class RegenerateContentRequest(BaseModel):
     narrative: Optional[str] = None
     tone: Optional[str] = None
     max_chunks: int = 1500
-    chunk_size: int = 400
-    overlap: int = 100
+    chunk_size: int = 2000  # Larger chunks for better context
+    overlap: int = 200  # Reduced overlap since we want fewer chunks

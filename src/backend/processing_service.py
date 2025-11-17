@@ -18,6 +18,7 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
+# pdf processing service orchestrates parsing, vectorizing, outlining, narrative creation, and slide building
 class PDFProcessingService:
     def __init__(self):
         self.pdf_parser = PDFParser()
@@ -38,6 +39,7 @@ class PDFProcessingService:
         start_time = time.time()
         
         try:
+            # parse and prepare pdf structure so all later steps know the title and sections
             logger.info(f"Starting PDF processing: {request.pdf_path}")
             logger.info("="*60)
             
@@ -51,11 +53,12 @@ class PDFProcessingService:
             logger.info(f"  ✓ Total pages: {pdf_structure.total_pages}")
             
             # Step 2: Chunk and embed
+            # large chunks plus overlap give enough context for summarisation without exploding count
             logger.info("\nStep 2: Chunking and embedding...")
             
-            # Use optimized chunk settings
-            chunk_size = min(request.chunk_size, 400)
-            overlap = max(request.overlap, 100)
+            # Use optimized chunk settings - larger chunks, fewer per page
+            chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
+            overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
             
             logger.info(f"  Using chunk_size={chunk_size}, overlap={overlap}")
             
@@ -75,6 +78,7 @@ class PDFProcessingService:
             logger.info(f"  ✓ Created vector store")
             
             # Step 3: Generate outline
+            # outline gives a high-level structure before long-form narrative
             logger.info("\nStep 3: Generating outline...")
             outline_items = self.outline_generator.generate_outline(
                 pdf_structure.title, 
@@ -85,19 +89,21 @@ class PDFProcessingService:
             logger.info(f"  ✓ Created {len(outline_items)} sections")
             
             # Step 4: Generate bullets with RAG
+            # bullets capture detailed evidence for each section
             logger.info("\nStep 4: Generating bullets...")
             self.rag_system.chunking_service = self.chunking_service
             bullets_data = self.rag_system.generate_comprehensive_bullets(
                 outline_items, 
                 vector_store,
-                top_k=8,
-                max_bullets_per_item=5
+                top_k=12,
+                max_bullets_per_item=12
             )
             
             total_bullets = sum(len(bullets) for bullets in bullets_data.values())
             logger.info(f"  ✓ Generated {total_bullets} total bullets")
             
             # Step 5: Generate slide deck
+            # convert structured outline + bullets into presentation-ready data
             logger.info("\nStep 5: Generating slide deck...")
             slide_deck = self.slide_generator.generate_slide_deck(
                 pdf_structure.title,
@@ -194,8 +200,9 @@ class PDFProcessingService:
             pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
             
             # Step 2: Chunk and embed
-            chunk_size = min(request.chunk_size, 400)
-            overlap = max(request.overlap, 100)
+            # reuse the same chunking strategy used in full processing
+            chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
+            overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
             
             chunks = self.chunking_service.chunk_text(
                 pdf_structure, 
@@ -218,7 +225,6 @@ class PDFProcessingService:
             )
             
             # Step 4: Generate outline FROM the narrative
-            # The outline structure should reflect the narrative's story beats
             outline_items = self.outline_generator.generate_outline_from_narrative(
                 narrative_plan,
                 pdf_structure.title
@@ -272,7 +278,7 @@ class PDFProcessingService:
         try:
             # Get relevant chunks for narrative generation using a broad query
             query = f"{pdf_title} case study user research design process problem solution"
-            similar_chunks_results = self.chunking_service.search_similar_chunks(query, top_k=15)
+            similar_chunks_results = self.chunking_service.search_similar_chunks(query, top_k=10)
             
             # Prepare context from chunks - clean and filter
             context_parts = []
@@ -294,7 +300,7 @@ class PDFProcessingService:
                 # Fallback: use chunks directly if search didn't work
                 logger.warning("Search didn't return enough context, using chunks directly")
                 context_parts = []
-                for chunk in chunks[:15]:
+                for chunk in chunks[:12]:
                     chunk_text = chunk.text if hasattr(chunk, 'text') else str(chunk)
                     chunk_text = self._clean_chunk_text(chunk_text)
                     if chunk_text and len(chunk_text.strip()) > 50:
@@ -330,54 +336,54 @@ CRITICAL REQUIREMENTS - READ CAREFULLY:
 4. If the source material mentions "Carnatic music", write about Carnatic music - NOT banking apps or finances
 5. If the source material mentions specific research methods, users, or findings, reference those EXACTLY
 6. Write a COMPLETE, COHERENT narrative - every sentence must be finished and make sense
-7. Follow the exact 5-part storytelling structure below
+7. Follow the exact narrative structure below
 8. Write in flowing paragraphs, not bullet points or fragments
 9. DO NOT include page numbers, random numbers like "4-10", "55-59", or incomplete sentences ending with "...."
 10. DO NOT copy text verbatim - synthesize and rewrite in a narrative style
 11. Connect each section naturally to create a cohesive story
+12. WRITE IN FIRST PERSON - Write as the designer themselves (use "I", "we", "my", "our")
+13. WRITE IN A CLEAR, CONVERSATIONAL, AND COMPELLING STYLE - Write like a student telling their story. Use simple, direct language. Avoid convoluted or overly complex sentences. Be engaging and natural, not academic or formal. Write as if you're explaining your project to a friend or colleague.
+14. BE SPECIFIC AND PRECISE - Extract exact details from the source material. DO NOT use vague statements like "lacked an engaging experience" or "addressed the issue". Instead, state SPECIFIC problems, SPECIFIC findings, SPECIFIC methods, SPECIFIC numbers/statistics if mentioned
+15. For research sections, provide DETAILED information: exact method names, number of participants, specific findings, exact quotes or insights mentioned, specific analysis methods used
+16. Answer every question in each section PRECISELY with information from the source material - do not leave any question unanswered or give vague answers
+17. Keep sentences clear and concise - avoid unnecessary complexity or jargon
+18. TOTAL WORD COUNT MUST BE BETWEEN 500 AND 700 WORDS (target ~600). HARD LIMIT: DO NOT EXCEED 700 WORDS.
+19. DO NOT mention appendices, appendixes, supplementary materials, or reference any “see appendix” notes—keep everything self-contained in the narrative.
+20. DO NOT add closing notes like “Note: this narrative…” or any other meta explanation—end after the final section content.
+21. Use clear, concise, conversational language that sounds natural and human—avoid robotic phrasing or generic filler.
+22. Be laser-specific about problems, users, methods, and outcomes. No vague statements or placeholder text.
 
-STRUCTURE YOUR NARRATIVE AS FOLLOWS:
+STRUCTURE YOUR NARRATIVE EXACTLY AS FOLLOWS (USE THESE MARKDOWN HEADINGS VERBATIM):
 
-**1. Define the Hero (The User)**
-Read the source material carefully to identify:
-- Who is the actual user mentioned in the case study?
-- What is the actual problem they face (as described in the source material)?
-- What is the actual context or domain (e.g., Carnatic music education, not banking)?
+**tldr;**
+- 1-2 tight paragraphs that summarise the experience area, the opportunity, and why the project mattered. Mention the problem space, what you set out to do, and the overall value of the outcome. This section should feel like the sample provided in briefing material.
 
-Write 2-3 complete paragraphs that describe the REAL user and problem from the source material. Do NOT invent fictional users or scenarios.
+**Team and Constraints**
+- Be explicit about team composition, your role, time frame, scope, tooling, and any notable limitations or decisions. Ground everything in SPECIFIC facts from the PDF.
 
-**2. Set the Stage**
-From the source material, identify:
-- What was the actual project scope mentioned?
-- What were the actual goals stated?
-- What research methods were actually used (as mentioned in source material)?
-- What constraints existed?
+**Research Themes and Early Findings**
+- Describe the research program with precise detail. Name the methods, number of participants, duration, focus areas, and the exact insights you uncovered. Organise this as 2-3 coherent paragraphs that reference the real findings from the PDF.
 
-Write 1-2 complete paragraphs using ONLY information from the source material.
+**Problem Statement**
+- Write a single clear "How Might We" or declarative problem statement that emerged from the findings. It must be rooted in the actual evidence you cited above.
 
-**3. Show the Conflict**
-From the source material, identify:
-- What actual challenges or obstacles were discovered?
-- What unexpected insights came from the actual research?
-- What hurdles had to be overcome (as mentioned in source material)?
+**Design Process and Iterations**
+- Explain how you moved from ideas to tangible solutions. Reference ideation approaches, sketches, wireframes, mockups, and iteration loops. Highlight concrete decisions, what changed between rounds, and why. Include tool names or deliverables if they are mentioned in the source.
 
-Write 2-3 complete paragraphs using ONLY challenges and insights from the source material.
+**Testing and Feedback**
+- Describe the validation work: exact testing methods, participant counts, tasks, observations, and the changes triggered by feedback. Keep it highly specific.
 
-**4. The Turning Point**
-From the source material, identify:
-- What actual design decisions were made?
-- What actual breakthrough moments or iterations occurred?
-- What actual processes or methods were used?
+**The Final Outcome**
+- Provide a concise walkthrough of the final experience. Explain how it addresses the initial problem and how it ladders back to the goals.
 
-Write 2-3 complete paragraphs using ONLY design decisions and processes from the source material.
+**What Didn't Go as Planned**
+- Reflect honestly on at least one challenge, compromise, or lesson learned. Describe how you adapted and what you would explore next.
 
-**5. Deliver the Resolution**
-From the source material, identify:
-- What actual results or outcomes were mentioned?
-- What actual impact or metrics were reported?
-- What actual conclusions were drawn?
+IMPORTANT:
+- Each section must contain meaningful content derived from the source material—never leave a section empty or filled with generic filler.
+- Maintain natural transitions so the story flows even though it is broken into sections.
+- Remember: total length 500-700 words; keep paragraphs tight and purposeful.
 
-Write 1-2 complete paragraphs using ONLY results and outcomes from the source material.
 
 ABSOLUTE PROHIBITIONS:
 - DO NOT invent fictional users, scenarios, or examples
@@ -390,12 +396,16 @@ ABSOLUTE PROHIBITIONS:
 - DO NOT reference domains, apps, or contexts that are NOT in the source material
 
 VALIDATION CHECKLIST (before submitting):
-- [ ] Every user, problem, and context mentioned comes from the source material
+- [ ] Written in FIRST PERSON (I, we, my, our)
+- [ ] Every user, problem, and context mentioned comes from the source material with SPECIFIC details
+- [ ] No vague statements - all problems, findings, and methods are PRECISE and SPECIFIC
 - [ ] No fictional scenarios or invented examples
-- [ ] All research methods mentioned are from the source material
-- [ ] All design decisions referenced are from the source material
-- [ ] All results/outcomes are from the source material
+- [ ] All research methods include SPECIFIC details: exact method names, participant numbers, duration, specific findings
+- [ ] All design decisions referenced are from the source material with specific details
+- [ ] All results/outcomes are from the source material with specific details
 - [ ] The narrative matches the domain/topic of the case study title
+- [ ] Every question in each section is answered PRECISELY with information from source material
+- [ ] Final word count is between 500 and 700 words
 
 Now write the complete narrative following this structure, using EXCLUSIVELY the source material provided above:"""
 
@@ -403,7 +413,7 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
             messages = [
                 {
                     "role": "system",
-                    "content": "You are an expert UX case study writer who creates compelling, story-driven narratives based EXCLUSIVELY on provided source material. You NEVER invent fictional users, scenarios, or examples. You extract actual users, problems, research findings, design decisions, and outcomes from the source material and synthesize them into engaging narratives. You write complete, coherent narratives that flow naturally. You never leave sentences incomplete, use fragmented phrases, or include page numbers or random ranges. You are strictly factual and base everything on the provided source material."
+                    "content": "You are an expert UX case study writer who creates compelling, story-driven narratives based EXCLUSIVELY on provided source material. You write in FIRST PERSON as the designer themselves, using a CLEAR, CONVERSATIONAL, and COMPELLING style. Write like a student telling their story - use simple, direct language, avoid convoluted or overly complex sentences. Be engaging and natural, not academic or formal. You NEVER invent fictional users, scenarios, or examples. You extract ACTUAL, SPECIFIC users, problems, research findings, design decisions, and outcomes from the source material. You provide PRECISE, DETAILED information - never vague statements. For research methods, you include exact method names, participant numbers, specific findings, and detailed results. You write complete, coherent narratives that flow naturally with clear, concise sentences. You never leave sentences incomplete, use fragmented phrases, or include page numbers or random ranges. You are strictly factual, specific, and base everything on the provided source material with precise details."
                 },
                 {"role": "user", "content": prompt}
             ]
@@ -445,11 +455,11 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                 if has_hallucination and overlap < 5:
                     logger.warning(f"Narrative contains hallucinated content. Overlap with source: {overlap}. Regenerating...")
                     # Try once more with stronger emphasis
-                    retry_prompt = prompt + "\n\nCRITICAL REMINDER: The examples in the structure above are JUST examples of style, NOT content to copy. You MUST use ONLY the actual content from the source material provided. If the source material is about Carnatic music, write about Carnatic music. If it's about a different domain, use that domain. DO NOT use the example scenarios."
+                    retry_prompt = prompt + "\n\nCRITICAL REMINDER: The examples in the structure above are JUST examples of style, NOT content to copy. You MUST use ONLY the actual content from the source material provided. If the source material is about Carnatic music, write about Carnatic music. If it's about a different domain, use that domain. DO NOT use the example scenarios. REMEMBER: Write in FIRST PERSON (I, we, my, our). Be SPECIFIC and PRECISE - extract exact details, numbers, participant counts, specific findings, exact method names. DO NOT use vague statements."
                     retry_messages = [
                         {
                             "role": "system",
-                            "content": "You are an expert UX case study writer who creates compelling, story-driven narratives based EXCLUSIVELY on provided source material. You NEVER invent fictional users, scenarios, or examples. You extract actual users, problems, research findings, design decisions, and outcomes from the source material and synthesize them into engaging narratives. You write complete, coherent narratives that flow naturally. You never leave sentences incomplete, use fragmented phrases, or include page numbers or random ranges. You are strictly factual and base everything on the provided source material."
+                            "content": "You are an expert UX case study writer who creates compelling, story-driven narratives based EXCLUSIVELY on provided source material. You write in FIRST PERSON as the designer themselves, using a CLEAR, CONVERSATIONAL, and COMPELLING style. Write like a student telling their story - use simple, direct language, avoid convoluted or overly complex sentences. Be engaging and natural, not academic or formal. You NEVER invent fictional users, scenarios, or examples. You extract ACTUAL, SPECIFIC users, problems, research findings, design decisions, and outcomes from the source material. You provide PRECISE, DETAILED information - never vague statements. For research methods, you include exact method names, participant numbers, specific findings, and detailed results. You write complete, coherent narratives that flow naturally with clear, concise sentences. You never leave sentences incomplete, use fragmented phrases, or include page numbers or random ranges. You are strictly factual, specific, and base everything on the provided source material with precise details."
                         },
                         {"role": "user", "content": retry_prompt}
                     ]
@@ -461,15 +471,17 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                     if response and response.strip():
                         narrative = response.strip()
                         narrative = self._clean_narrative(narrative)
+                        narrative = self._deduplicate_paragraphs(narrative)
                 
-                # Validate that the narrative is complete (has all 5 sections)
-                sections = ["Define the Hero", "Set the Stage", "Show the Conflict", "Turning Point", "Resolution"]
+                # Validate that the narrative is complete (has key sections)
+                sections = ["Title of your project", "brief description", "Team and your role", "Setting the context", "What's the problem", "Research themes", "Problem statement", "Assumptions", "Design goals", "Ideation", "Design process", "final outcome", "What didn't go as planned"]
                 has_structure = any(section.lower() in narrative.lower() for section in sections)
                 
                 if not has_structure or len(narrative) < 500:
                     logger.warning("Generated narrative may be incomplete, using fallback")
                     return self._generate_fallback_narrative(outline_items, pdf_title, source_context)
                 
+                narrative = self._deduplicate_paragraphs(narrative)
                 return narrative
             else:
                 # Fallback to simple structure if LLM fails
@@ -483,7 +495,7 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
     def _clean_chunk_text(self, text: str) -> str:
         """Clean chunk text to remove page numbers, random numbers, and incomplete sentences"""
         import re
-        # Remove page number patterns like "4-10", "55-59", standalone numbers
+        # remove repeated numbering artifacts that often show up in pdf exports
         text = re.sub(r'\b\d+-\d+\b', '', text)  # Remove ranges
         text = re.sub(r'\b\d{1,2}\s*=\s*\d+', '', text)  # Remove patterns like "4 = 10"
         # Remove incomplete sentences ending with "...."
@@ -495,7 +507,7 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
     def _clean_narrative(self, narrative: str) -> str:
         """Clean the generated narrative to remove any issues"""
         import re
-        # Remove page number patterns
+        # remove leftover numbering and tidy punctuation so editors see readable text
         narrative = re.sub(r'\b\d+-\d+\b', '', narrative)
         narrative = re.sub(r'\b\d{1,2}\s*=\s*\d+', '', narrative)
         # Fix incomplete sentences ending with "...."
@@ -509,39 +521,54 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                 cleaned_lines.append(line)
         return '\n\n'.join(cleaned_lines)
     
+    def _deduplicate_paragraphs(self, narrative: str) -> str:
+        """remove duplicated paragraphs while keeping order"""
+        seen = set()
+        ordered = []
+        for block in narrative.split('\n\n'):
+            normalized = block.strip()
+            if not normalized:
+                continue
+            key = normalized.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            ordered.append(normalized)
+        return '\n\n'.join(ordered)
+    
     def _generate_fallback_narrative(self, outline_items: List, pdf_title: str, source_context: str = "") -> str:
         """Fallback narrative generation if LLM fails"""
-        narrative = f"""Case Study: {pdf_title}
+        narrative = f"""**tldr;**
 
-**1. Define the Hero (The User)**
+{pdf_title} is a UX case study that examines a specific problem space uncovered in the provided PDF. The project explored user needs, framed a clear challenge, and iterated on design decisions to produce a thoughtful outcome grounded in evidence.
 
-Every compelling UX case study begins with the user. In this project, we focused on understanding who our users are and what challenges they face. The hero of our story is not the designer, but the people who will use and benefit from our design solution.
+**Team and Constraints**
 
-Based on our research, we identified key user needs and pain points that drove our design decisions. Understanding their context, motivations, and frustrations was essential to creating a solution that truly serves them.
+This was a solo student project that covered research, design, prototyping, and testing within a limited academic timeline. I navigated the assignment scope, available tools, and course expectations while balancing other unit requirements.
 
-**2. Set the Stage**
+**Research Themes and Early Findings**
 
-This project was undertaken with specific goals and constraints in mind. We worked within defined parameters including timeline, resources, and stakeholder requirements. Understanding these constraints helped shape our approach and ensured we delivered a solution that was both innovative and feasible.
+To understand the space, I reviewed the source material, extracted the documented research activities, and summarised the resulting insights. These findings revealed the user motivations, contextual factors, and experience gaps that guided the next steps.
 
-The project scope encompassed multiple phases of research, design, and testing, each building upon the previous to create a comprehensive solution.
+**Problem Statement**
 
-**3. Show the Conflict**
+Using the documented insights, I articulated a concise problem statement that anchored the rest of the work and clarified the opportunity for design.
 
-During our research phase, we discovered several unexpected challenges and obstacles. These findings revealed gaps between initial assumptions and actual user needs. Some insights challenged our preconceptions and required us to rethink our approach.
+**Design Process and Iterations**
 
-These conflicts and challenges became opportunities to demonstrate our problem-solving abilities and create a more robust solution.
+I mapped the design activities described in the PDF—covering ideation, sketches, wireframes, mockups, and refinements—to show how the solution evolved. Each iteration built on previous learning and tightened the concept.
 
-**4. The Turning Point**
+**Testing and Feedback**
 
-Through iterative design and testing, we identified key breakthrough moments that transformed our understanding of the problem. These "aha" moments led to design decisions that fundamentally improved the user experience.
+I summarised the evaluation methods, participants, and feedback loops listed in the source material, showing how evidence shaped the evolving design.
 
-By focusing on these critical insights, we were able to create solutions that addressed core user needs in innovative ways.
+**The Final Outcome**
 
-**5. Deliver the Resolution**
+The final state demonstrates how the design responded to the original brief and why it is a coherent answer to the problem statement.
 
-The final solution delivered measurable impact on the user experience. Through our design process, we achieved outcomes that directly addressed the challenges identified at the beginning of the project.
+**What Didn't Go as Planned**
 
-The results demonstrate how thoughtful design can transform user experiences and create meaningful value.
+I reflected on trade-offs and lessons mentioned in the PDF, highlighting how they shifted my understanding of the project.
 
 **Outline Sections:**
 """
@@ -562,7 +589,7 @@ The results demonstrate how thoughtful design can transform user experiences and
         try:
             logger.info(f"Regenerating content with narrative: {request.narrative[:100] if request.narrative else 'None'}..., tone: {request.tone}")
             
-            # Load or recreate vector store
+            # load existing embeddings if present, otherwise rebuild
             pdf_name = Path(request.pdf_path).stem
             vector_store_path = self.vector_store_dir / pdf_name
             
@@ -571,17 +598,17 @@ The results demonstrate how thoughtful design can transform user experiences and
                 vector_store = self.chunking_service.load_vector_store(str(vector_store_path))
             else:
                 # Recreate vector store
+                # if regenerate is called after edits, we may not have stored vectors yet
                 pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
-                chunk_size = min(request.chunk_size, 400)
-                overlap = max(request.overlap, 100)
+                chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
+                overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
                 chunks = self.chunking_service.chunk_text(pdf_structure, chunk_size, overlap)
                 if len(chunks) > request.max_chunks:
                     chunks = chunks[:request.max_chunks]
                 vector_store = self.chunking_service.create_embeddings(chunks)
                 self.chunking_service.save_vector_store(str(vector_store_path))
             
-            # Regenerate outline from the edited narrative (if narrative provided)
-            # This ensures the outline structure matches the narrative
+            # regenerate outline from the edited narrative so slides mirror the student's plan
             if request.narrative:
                 outline_items = self.outline_generator.generate_outline_from_narrative(
                     request.narrative,
@@ -597,12 +624,12 @@ The results demonstrate how thoughtful design can transform user experiences and
             self.rag_system.tone = request.tone
             self.rag_system.all_seen_bullets = []  # Reset for regeneration
             
-            # Regenerate bullets with new parameters using the regenerated outline
+            # regenerate bullets with new parameters using the regenerated outline
             bullets_data = self.rag_system.generate_comprehensive_bullets(
                 outline_items, 
                 vector_store,
-                top_k=8,
-                max_bullets_per_item=5
+                top_k=12,
+                max_bullets_per_item=12
             )
             
             # Get PDF title

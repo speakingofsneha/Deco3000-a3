@@ -50,42 +50,71 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
   return (
     <div className="upload-screen">
       <main className="upload-content">
-        <h1 className="upload-title">Welcome to Reframe</h1>
-        <p className="upload-subtitle">How would you like to get started?</p>
+        <h1 className="upload-title">Upload your visual report</h1>
+        <p className="upload-subtitle">We’ll turn it into an engaging case study ;)</p>
         
-        <div 
-          className="upload-area"
-          ref={uploadAreaRef}
-          onClick={handleClick}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="upload-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 4V20M12 4L8 8M12 4L16 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        <div className="upload-card">
+          <div 
+            className="upload-area"
+            ref={uploadAreaRef}
+            onClick={handleClick}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4V20M12 4L8 8M12 4L16 8" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <label htmlFor="file-input" className="upload-label">Drop your PDF here or browse</label>
+            <p className="upload-description">Max file size up to 1 GB</p>
+            <input 
+              type="file" 
+              id="file-input" 
+              className="upload-input" 
+              accept=".pdf"
+              ref={fileInputRef}
+              onChange={handleFileInput}
+            />
           </div>
-          <label htmlFor="file-input" className="upload-label">Import Content</label>
-          <p className="upload-description">Turn your pdf an engaging case study</p>
-          <input 
-            type="file" 
-            id="file-input" 
-            className="upload-input" 
-            accept=".pdf"
-            ref={fileInputRef}
-            onChange={handleFileInput}
-          />
+
+          {selectedFile && (
+            <div className="upload-list">
+              <div className="upload-item">
+                <div className="upload-item-icon">PDF</div>
+                <div className="upload-item-details">
+                  <p className="upload-item-name">{selectedFile.name}</p>
+                  <p className="upload-item-size">{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</p>
+                </div>
+                <button 
+                  className="upload-item-remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFile(null);
+                    setError('');
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                  aria-label="Remove file"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {error && <div className="error-message">{error}</div>}
         </div>
         
         <button 
-          className="reframe-button" 
+          className="upload-button primary" 
           onClick={onReframe}
           disabled={!selectedFile}
         >
           Reframe it
         </button>
-        {error && <div className="error-message">{error}</div>}
       </main>
     </div>
   );

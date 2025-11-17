@@ -60,9 +60,29 @@ function groupSlidesByTitle(slides) {
   return grouped;
 }
 
-function renderSlideContent(contentItems, isMediaSlide) {
+function renderSlideContent(contentItems, isMediaSlide, metadata = {}) {
   if (!contentItems || contentItems.length === 0) return '';
   
+  const inlineMedia = Boolean(metadata.inline_media);
+  const mediaBreakpoints = Array.isArray(metadata.media_breakpoints)
+    ? metadata.media_breakpoints
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value > 0)
+    : [];
+
+  if (inlineMedia) {
+    let html = '<div class="points points--inline-media">';
+    contentItems.forEach((b, idx) => {
+      html += `<p class="point body">${escapeHtml(b.text || '')}</p>`;
+      const breakpointIndex = idx + 1;
+      if (mediaBreakpoints.includes(breakpointIndex)) {
+        html += '<div class="media-placeholder media-placeholder--inline" aria-hidden="true"></div>';
+      }
+    });
+    html += '</div>';
+    return html;
+  }
+
   if (isMediaSlide) {
     const descriptionText = contentItems.map(b => b.text || '').join(' ');
     return `<p class="body media-description">${escapeHtml(descriptionText)}</p>`;
@@ -103,11 +123,49 @@ function renderSlideDeck(slideDeck) {
     } else {
       const hasMedia = slide.metadata && slide.metadata.has_media === true;
       const isMediaSlide = slide.metadata && slide.metadata.is_media_slide === true;
-      const layoutClass = hasMedia ? ' layout--media-above' : '';
+      const layout = slide.metadata && slide.metadata.layout ? slide.metadata.layout : 'default';
+      const inlineMedia = Boolean(slide.metadata && slide.metadata.inline_media);
+      
+      // Determine layout class based on metadata
+      const layoutClassMap = {
+        'text-top-image-bottom': ' layout--text-top-image-bottom',
+        'image-top-text-bottom': ' layout--image-top-text-bottom',
+        'image-top-feature': ' layout--image-top-feature',
+        'image-bottom-feature': ' layout--image-bottom-feature',
+        'inline-stagger': ' layout--inline-stagger',
+        'inline-gallery': ' layout--inline-gallery',
+        'problem-statement': ' layout--problem-statement'
+      };
+      
+      let layoutClass = '';
+      if (layoutClassMap[layout]) {
+        layoutClass = layoutClassMap[layout];
+      } else if (hasMedia) {
+        layoutClass = ' layout--media-above';
+      }
       
       section.className += layoutClass;
       
-      const mediaHtml = hasMedia ? '<div class="media-placeholder" aria-hidden="true"></div>' : '';
+      let mediaHtml = '';
+      if (hasMedia && !inlineMedia) {
+        const slots = Math.max(1, slide.metadata?.media_slots || 1);
+        mediaHtml = Array.from({ length: slots })
+          .map(() => '<div class="media-placeholder" aria-hidden="true"></div>')
+          .join('');
+      }
+      
+      // For two-column layouts, render as points (not media-description)
+      const twoColumnLayouts = new Set([
+        'text-top-image-bottom',
+        'image-top-text-bottom',
+        'image-top-feature',
+        'image-bottom-feature',
+        'inline-stagger',
+        'inline-gallery',
+        'problem-statement'
+      ]);
+      const shouldRenderAsPoints = (hasMedia && twoColumnLayouts.has(layout)) || inlineMedia;
+      const renderAsMediaSlide = isMediaSlide && !shouldRenderAsPoints;
       
       section.innerHTML = `
         <div class="slide__canvas slide__canvas--${savedTheme}">
@@ -115,7 +173,7 @@ function renderSlideDeck(slideDeck) {
             <div class="overline">${idx + 1} / ${totalSlides}</div>
             <h1 class="heading">${escapeHtml(slide.title || '')}</h1>
             ${mediaHtml}
-            ${renderSlideContent(slide.content, isMediaSlide)}
+            ${renderSlideContent(slide.content, renderAsMediaSlide, slide.metadata || {})}
           </div>
         </div>
       `;

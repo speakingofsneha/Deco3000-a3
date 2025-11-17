@@ -18,6 +18,30 @@ const Sidebar = ({ isOpen, onClose, onNavigate, currentScreen }) => {
     onClose();
   };
 
+  const handleDelete = (e, caseStudyId) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent triggering the history item click
+    
+    // Double check - only delete if explicitly confirmed
+    const confirmed = window.confirm('Are you sure you want to delete this case study?');
+    if (confirmed) {
+      if (window.HistoryService) {
+        const success = window.HistoryService.deleteFromHistory(caseStudyId);
+        if (success) {
+          // Refresh history immediately
+          const updatedHistory = window.HistoryService.getHistory();
+          setHistory(updatedHistory);
+        } else {
+          console.error('Failed to delete case study');
+          alert('Failed to delete case study. Please try again.');
+        }
+      } else {
+        console.error('HistoryService not available');
+        alert('History service not available. Please refresh the page.');
+      }
+    }
+  };
+
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
       <div className="sidebar__header">
@@ -42,18 +66,33 @@ const Sidebar = ({ isOpen, onClose, onNavigate, currentScreen }) => {
               <p className="sidebar__empty">No case studies yet</p>
             ) : (
               history.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  className="sidebar__history-item"
-                  onClick={() => handleHistoryClick(item)}
+                  className="sidebar__history-item-wrapper"
                 >
-                  <div className="sidebar__history-content">
-                    <span className="sidebar__history-title">{item.title}</span>
-                    <span className="sidebar__history-date">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </button>
+                  <button
+                    className="sidebar__history-item"
+                    onClick={() => handleHistoryClick(item)}
+                  >
+                    <div className="sidebar__history-content">
+                      <span className="sidebar__history-title">{item.title}</span>
+                      <span className="sidebar__history-date">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    className="sidebar__history-delete"
+                    onClick={(e) => handleDelete(e, item.id)}
+                    onMouseDown={(e) => e.stopPropagation()} // Prevent any event bubbling
+                    aria-label="Delete case study"
+                    type="button"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
               ))
             )}
           </div>

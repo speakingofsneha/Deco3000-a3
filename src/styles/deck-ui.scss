@@ -66,7 +66,7 @@ body.app {
 .btn {
   appearance: none;
   border: 1px solid $color-stroke;
-  background: rgba(148, 149, 146, 0.05);
+  background: $color-bg;
   color: $color-text-dark;
   padding: 10px 16px;
   border-radius: 6px;
@@ -79,7 +79,7 @@ body.app {
 
 .btn:hover {
   border-color: $color-text-dark;
-  background: rgba(148, 149, 146, 0.1);
+  background: $color-bg;
   transform: translateY(-1px);
 }
 

@@ -1,14 +1,20 @@
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect, useCallback, useRef } = React;
 
 // API base URL
 const API_BASE_URL = '';
 
 // Main App Component
 const App = () => {
-  const [screen, setScreen] = useState('upload');
+  const [screen, setScreen] = useState('onboarding');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const [loadingTitle, setLoadingTitle] = useState('Generating outline');
+  const progressIntervalRef = useRef(null);
+  const caseStudySectionsRef = useRef({
+    currentIndex: 0,
+    total: 8
+  });
   
   // State for file processing
   const [selectedFile, setSelectedFile] = useState(null);
@@ -27,9 +33,14 @@ const App = () => {
     }
   }, []);
 
+  const handleOnboardingComplete = useCallback(() => {
+    setScreen('upload');
+  }, []);
+
   const loadCaseStudyFromHistory = async (caseStudy) => {
     setLoading(true);
-    setLoadingMessage('Loading case study...');
+    setLoadingTitle('Loading case study');
+    setLoadingMessage('Retrieving saved slides...');
     try {
       setSlideDeck(caseStudy.slideDeck);
       setPdfTitle(caseStudy.title);
@@ -50,7 +61,8 @@ const App = () => {
     if (!selectedFile) return;
 
     setLoading(true);
-    setLoadingMessage('Uploading document...');
+    setLoadingTitle('Generating outline');
+    setLoadingMessage('');
     setScreen('loading');
 
     try {
@@ -70,7 +82,8 @@ const App = () => {
       const uploadData = await uploadResponse.json();
       setUploadedFilePath(uploadData.file_path);
 
-      setLoadingMessage('Generating outline...');
+      setLoadingTitle('Generating outline');
+      setLoadingMessage('');
       const outlineFormData = new FormData();
       outlineFormData.append('pdf_path', uploadData.file_path);
       outlineFormData.append('max_chunks', '1000');
@@ -107,11 +120,11 @@ const App = () => {
     }
   };
 
-  const handleContinue = async (narrative, tone) => {
+  const handleContinue = async (narrative) => {
     if (!currentOutline || !currentPdfPath) return;
 
     setLoading(true);
-    setLoadingMessage('Generating case study content...');
+    startCaseStudyProgress();
     setScreen('loading');
 
     try {
@@ -119,7 +132,6 @@ const App = () => {
         pdf_path: currentPdfPath,
         outline: currentOutline,
         narrative,
-        tone: tone || null,
         max_chunks: 1000,
         chunk_size: 500,
         overlap: 50
@@ -146,7 +158,9 @@ const App = () => {
       setCurrentBulletsData(regenerateData.bullets_data);
       setCurrentNarrative(narrative);
 
-      setLoadingMessage('Generating your slide deck...');
+      stopCaseStudyProgress();
+      setLoadingTitle('Generating slide deck');
+      setLoadingMessage('');
 
       const formData = new FormData();
       formData.append('pdf_path', currentPdfPath);
@@ -189,6 +203,7 @@ const App = () => {
       // DeckScreen useEffect will handle rendering
 
     } catch (error) {
+      stopCaseStudyProgress();
       console.error('Error:', error);
       alert(error.message || 'Failed to generate slides');
       setScreen('edit');
@@ -196,21 +211,54 @@ const App = () => {
     }
   };
 
+  const startCaseStudyProgress = () => {
+    stopCaseStudyProgress();
+    const totalSections = 8;
+    caseStudySectionsRef.current = { currentIndex: 0, total: totalSections };
+    setLoadingTitle(`0/${totalSections} sections generated`);
+    setLoadingMessage('');
+    
+    progressIntervalRef.current = setInterval(() => {
+      caseStudySectionsRef.current.currentIndex = Math.min(
+        caseStudySectionsRef.current.currentIndex + 1,
+        totalSections
+      );
+      setLoadingTitle(`${caseStudySectionsRef.current.currentIndex}/${totalSections} sections generated`);
+    }, 1200);
+  };
+
+  const stopCaseStudyProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  };
+
+  const isOnboarding = screen === 'onboarding';
+
   return (
     <>
-      <HamburgerMenu 
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        isOpen={sidebarOpen}
-      />
-      
-      <Sidebar 
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNavigate={navigate}
-        currentScreen={screen}
-      />
+      {!isOnboarding && (
+        <>
+          <HamburgerMenu 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            isOpen={sidebarOpen}
+          />
+          
+          <Sidebar 
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            onNavigate={navigate}
+            currentScreen={screen}
+          />
+        </>
+      )}
 
-      {loading && <LoadingScreen message={loadingMessage} />}
+      {loading && <LoadingScreen title={loadingTitle} message={loadingMessage} />}
+
+      {!loading && isOnboarding && (
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      )}
       
       {!loading && screen === 'upload' && (
         <UploadScreen 

@@ -24,63 +24,63 @@ class ChunkingEmbeddingService:
         self.model = SentenceTransformer(model_name)
         self.vector_store = None
     
-    def chunk_text(self, pdf_structure: PDFStructure, chunk_size: int = 500, overlap: int = 50) -> List[Chunk]:
-        """Chunk text with IDs and metadata"""
+    def chunk_text(self, pdf_structure: PDFStructure, chunk_size: int = 2000, overlap: int = 200) -> List[Chunk]:
+        """Chunk text with IDs and metadata - page-based chunking (1-2 chunks per page)"""
         chunks = []
         chunk_id = 0
         
-        # Process each section separately
+        # Group content by page for page-based chunking
+        pages_content = {}
         for section in pdf_structure.sections:
-            section_text = " ".join(section['content'])
+            page = section['page']
+            if page not in pages_content:
+                pages_content[page] = []
+            pages_content[page].extend(section['content'])
+        
+        # Also add remaining paragraphs to their respective pages
+        # For paragraphs without explicit page info, we'll need to estimate or use page 1
+        for para in pdf_structure.paragraphs:
+            # If paragraphs have page info, use it; otherwise default to page 1
+            # This assumes paragraphs might have page metadata - adjust based on PDFStructure
+            page = 1  # Default - adjust if PDFStructure provides page info for paragraphs
+            if page not in pages_content:
+                pages_content[page] = []
+            pages_content[page].append(para)
+        
+        # Process each page separately - aim for 1-2 chunks per page
+        for page_num in sorted(pages_content.keys()):
+            page_text = " ".join(pages_content[page_num])
             
-            # Split section into chunks
-            section_chunks = self._split_text_into_chunks(
-                section_text, 
+            if not page_text.strip():
+                continue
+            
+            # For page-based chunking, use larger chunk size to get 1-2 chunks per page
+            # Estimate: average page has ~500-1000 words, so chunk_size of 2000 should give 1 chunk per page
+            # If page is very long, it might split into 2 chunks
+            page_chunks = self._split_text_into_chunks(
+                page_text, 
                 chunk_size, 
                 overlap
             )
             
-            for i, chunk_text in enumerate(section_chunks):
+            for i, chunk_text in enumerate(page_chunks):
                 chunk = Chunk(
                     id=f"chunk_{chunk_id}",
                     text=chunk_text,
-                    page_number=section['page'],
+                    page_number=page_num,
                     chunk_index=i,
                     metadata={
-                        'section_title': section['title'],
-                        'section_page': section['page'],
+                        'section_title': f'Page {page_num}',
+                        'section_page': page_num,
                         'chunk_length': len(chunk_text),
-                        'pdf_title': pdf_structure.title
+                        'pdf_title': pdf_structure.title,
+                        'chunks_per_page': len(page_chunks)
                     }
                 )
                 chunks.append(chunk)
                 chunk_id += 1
         
-        # Also chunk remaining paragraphs that weren't in sections
-        remaining_text = " ".join(pdf_structure.paragraphs)
-        if remaining_text.strip():
-            remaining_chunks = self._split_text_into_chunks(
-                remaining_text, 
-                chunk_size, 
-                overlap
-            )
-            
-            for i, chunk_text in enumerate(remaining_chunks):
-                chunk = Chunk(
-                    id=f"chunk_{chunk_id}",
-                    text=chunk_text,
-                    page_number=1,  # Default page
-                    chunk_index=i,
-                    metadata={
-                        'section_title': 'General',
-                        'section_page': 1,
-                        'chunk_length': len(chunk_text),
-                        'pdf_title': pdf_structure.title
-                    }
-                )
-                chunks.append(chunk)
-                chunk_id += 1
-        
+        logger.info(f"Created {len(chunks)} chunks across {len(pages_content)} pages (avg {len(chunks)/len(pages_content):.1f} chunks per page)")
         return chunks
     
     def _split_text_into_chunks(self, text: str, chunk_size: int, overlap: int) -> List[str]:

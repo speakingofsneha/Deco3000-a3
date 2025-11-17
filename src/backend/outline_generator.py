@@ -26,11 +26,13 @@ YOUR TASK:
 Extract 6-10 key sections from this narrative. Each section should represent a major story beat or phase in the case study story. The sections should follow the narrative's flow and structure.
 
 REQUIREMENTS:
-1. Extract sections that align with the narrative's story structure (hero's journey, problem, research, insights, solution, testing, results, etc.)
-2. Create clear, descriptive titles for each section (e.g., "Understanding the Problem", "User Research Insights", "Design Solution", etc.)
-3. Order sections to match the narrative's flow
-4. Each section should have a brief description (1-2 sentences) that explains what content belongs in that section based on the narrative
-5. The sections should reflect the story beats in the narrative, not generic design process steps
+1. If the narrative already uses explicit Markdown headings (e.g., "**tldr;**", "**Team and Constraints**"), REUSE THOSE EXACT TITLES in the same order.
+2. Extract sections that align with the narrative's story structure, with SPECIAL EMPHASIS on process sections: ideation, wireframes, mockups, prototyping, testing, iterations, design process, etc.
+3. Create clear, descriptive titles for any additional sections you must infer (e.g., "Understanding the Problem", "User Research Insights", "Ideation and Concept Development", "Wireframes and Early Designs", "Mockups and Visual Design", "Prototyping Process", "Testing and Iterations", etc.)
+4. Order sections to match the narrative's flow. Do NOT reorder the narrative's headings.
+5. Each section should have a brief description (1-2 sentences) that explains what content belongs in that section based on the narrative
+6. The sections should reflect the story beats in the narrative, with PARTICULAR ATTENTION to design process sections (ideation, wireframes, mockups, prototyping, testing, iterations)
+7. Ensure process-related sections are included: ideation, wireframes, mockups, prototyping, testing, and iterations
 
 OUTPUT FORMAT:
 Return a JSON array of sections, each with:
@@ -111,14 +113,23 @@ Return ONLY the JSON array, no other text."""
         
         # Identify story beats based on narrative content
         story_beats = [
-            ("Problem Overview", ["problem", "challenge", "pain point", "user's journey", "hero"]),
-            ("Research and Discovery", ["research", "interview", "survey", "understand", "discover"]),
-            ("Key Insights", ["insight", "finding", "learned", "discovered", "revealed"]),
-            ("Design Solution", ["solution", "design", "approach", "decision", "breakthrough"]),
-            ("Implementation", ["prototype", "wireframe", "mockup", "build", "create"]),
-            ("Testing and Evaluation", ["test", "evaluation", "feedback", "iteration", "result"]),
-            ("Results and Impact", ["result", "impact", "outcome", "success", "metric"]),
-            ("Next Steps", ["next", "future", "roadmap", "improvement"])
+            ("Title of your project", ["title", "project name", "core focus"]),
+            ("A brief description", ["brief description", "project covers", "overview", "outcome"]),
+            ("Team and your role", ["team", "role", "responsible", "solo"]),
+            ("Setting the context", ["context", "assignment brief", "scope", "when", "how long"]),
+            ("What's the problem?", ["problem", "challenge", "pain point", "user"]),
+            ("Research themes + early findings", ["research", "themes", "findings", "interview", "survey", "insights"]),
+            ("Problem statement", ["problem statement", "how might we", "hmw"]),
+            ("Assumptions, constraints, and blockers", ["assumptions", "constraints", "blockers", "limitations"]),
+            ("Design goals + expected outcomes", ["design goals", "expected outcomes", "behaviours", "experiences"]),
+            ("Insights to action - Ideation", ["ideation", "brainstorm", "concepts", "directions", "sketches", "ideation methods"]),
+            ("Design process and iterations", ["design process", "iterations", "rounds", "linear", "cyclical", "iterative", "evolution"]),
+            ("Wireframes and early designs", ["wireframes", "wireframe", "early designs", "low-fidelity", "sketches", "wireframing"]),
+            ("Mockups and visual design", ["mockups", "mockup", "visual design", "color palette", "typography", "spacing", "layout"]),
+            ("Prototyping", ["prototyping", "prototype", "tools", "interface decisions", "interactive", "clickable"]),
+            ("Testing + feedback", ["testing", "feedback", "sus", "heuristic evaluation", "think aloud", "usability testing", "test rounds"]),
+            ("The final outcome", ["final outcome", "final design", "walkthrough", "design goals met"]),
+            ("What didn't go as planned", ["didn't go as planned", "adapted", "compromised", "learned", "next time"])
         ]
         
         order = 1

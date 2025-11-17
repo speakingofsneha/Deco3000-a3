@@ -25,6 +25,27 @@ const HistoryService = {
   getCaseStudy: (id) => {
     const history = HistoryService.getHistory();
     return history.find(h => h.id === id);
+  },
+  
+  deleteFromHistory: (id) => {
+    try {
+      const history = HistoryService.getHistory();
+      // Convert both to strings for consistent comparison
+      const idStr = String(id);
+      const filtered = history.filter(h => String(h.id) !== idStr);
+      
+      // Only update if something was actually removed
+      if (filtered.length < history.length) {
+        localStorage.setItem('caseStudyHistory', JSON.stringify(filtered));
+        return true;
+      } else {
+        console.warn('No item found with id:', id);
+        return false;
+      }
+    } catch (e) {
+      console.error('Failed to delete from history:', e);
+      return false;
+    }
   }
 };
 

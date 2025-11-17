@@ -160,14 +160,30 @@
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
-.sidebar__history-item {
+.sidebar__history-item-wrapper {
+  position: relative;
   width: 100%;
-  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar__history-item-wrapper:hover .sidebar__history-delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar__history-item {
+  flex: 1;
+  width: 100%;
+  padding: 12px 24px 12px 24px;
+  padding-right: 48px; // Make room for delete button
   background: transparent;
   border: none;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar__history-item:hover {
@@ -177,6 +193,37 @@
 .sidebar__history-item:active {
   background: rgba(148, 149, 146, 0.12);
   transform: translateX(2px);
+}
+
+.sidebar__history-delete {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none; // Prevent clicks when hidden
+  transition: all 0.2s ease;
+  color: $color-text-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar__history-delete:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.sidebar__history-delete:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .sidebar__history-content {
