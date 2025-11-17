@@ -3,7 +3,7 @@
 echo "Reframe"
 echo "=================================================="
 
-# Check if Python is installed
+# check if python is installed before we do anything
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 is not installed. Please install Python 3.8+ first."
     exit 1
@@ -11,7 +11,7 @@ fi
 
 echo "✅ Python 3 found: $(python3 --version)"
 
-# Install Python dependencies
+# install all the python packages we need
 echo "📦 Installing Python dependencies..."
 pip3 install -r requirements.txt
 
@@ -22,11 +22,11 @@ else
     exit 1
 fi
 
-# Check if Ollama is installed
+# check if ollama is already installed, if not install it
 if ! command -v ollama &> /dev/null; then
     echo "📥 Installing Ollama..."
     
-    # Install Ollama
+    # download and run the ollama install script
     curl -fsSL https://ollama.ai/install.sh | sh
     
     if [ $? -eq 0 ]; then
@@ -40,15 +40,15 @@ else
     echo "✅ Ollama already installed: $(ollama --version)"
 fi
 
-# Start Ollama service
+# start ollama in the background so we can download the model
 echo "🔄 Starting Ollama service..."
 ollama serve &
 OLLAMA_PID=$!
 
-# Wait a moment for Ollama to start
+# give ollama a sec to start up before we try to download
 sleep 3
 
-# Pull Llama 3 model
+# download the llama3 model we need for text generation
 echo "📥 Downloading Llama 3 model (this may take a few minutes)..."
 ollama pull llama3
 
@@ -60,7 +60,7 @@ else
     exit 1
 fi
 
-# Stop the background Ollama process
+# stop the background ollama process since we're done
 kill $OLLAMA_PID 2>/dev/null
 
 echo ""

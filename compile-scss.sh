@@ -1,5 +1,5 @@
 #!/bin/bash
-# Compile SCSS files to CSS
+# compile scss files to css
 
 cd "$(dirname "$0")/ui/styles"
 

@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 """
-PDF to Slide Deck Converter
+reframe
 
-A CLI and FastAPI application that converts PDF documents into structured slide decks
-using AI-powered text processing, chunking, embedding, and RAG (Retrieval-Augmented Generation).
+A FastAPI application that converts student visual reoprts into ux case studies
+using text processing, chunking, embedding, and RAG (Retrieval-Augmented Generation) etc. 
 
-Usage:
-    python main.py process <pdf_file> [options]
-    python main.py serve [options]
-    python main.py list-slides <json_file>
-    python main.py stats <json_file>
+To start the server:
+    python main.py serve
 """
 
 import sys
 import os
 from pathlib import Path
 
-# Add src to Python path
+# add src to python path so we can import backend modules
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.backend.cli import app
-
+# start the fastapi server when this file is run
 if __name__ == "__main__":
-    app()
+    import uvicorn
+    # run the api app on port 8000 with auto-reload for development
+    uvicorn.run("src.backend.api:app", host="0.0.0.0", port=8000, reload=True)

@@ -19,8 +19,3 @@ numpy>=1.24.3
 # HTTP & Environment
 requests>=2.31.0
 python-dotenv>=1.0.0
-
-# CLI Tools
-typer>=0.9.0
-rich>=13.7.0
-click>=8.1.7  # Dependency of typer
