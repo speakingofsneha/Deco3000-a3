@@ -1,49 +1,100 @@
 @use 'variables' as *;
 
-/* Hamburger Menu */
+/* Hamburger Menu - Consistent across all screens */
 .hamburger {
   position: fixed;
   top: 20px;
   left: 20px;
   z-index: 1003;
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(148, 149, 146, 0.01);
-  border-radius: 8px;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 8px;
+  padding: 4px;
+}
+
+/* Override fixed positioning when hamburger is inside deck screen crumb */
+#deck-screen .crumb .hamburger,
+#deck-screen .hamburger--crumb {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  margin: 0;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+#deck-screen .crumb .hamburger:hover,
+#deck-screen .hamburger--crumb:hover {
+  background: rgba(148, 149, 146, 0.1);
+  transform: none;
+}
+
+#deck-screen .crumb .hamburger:active,
+#deck-screen .hamburger--crumb:active {
+  background: rgba(148, 149, 146, 0.15);
+  transform: none;
+}
+
+#deck-screen .crumb .hamburger span,
+#deck-screen .hamburger--crumb span {
+  width: 14px;
+  height: 1.5px;
+  background: $color-text-dark;
+  border-radius: 1px;
+}
+
+#deck-screen .crumb .hamburger.hamburger--open span:nth-child(1),
+#deck-screen .hamburger--crumb.hamburger--open span:nth-child(1) {
+  transform: rotate(45deg) translate(3px, 3px);
+}
+
+#deck-screen .crumb .hamburger.hamburger--open span:nth-child(2),
+#deck-screen .hamburger--crumb.hamburger--open span:nth-child(2) {
+  transform: rotate(-45deg) translate(3px, -3px);
 }
 
 .hamburger:hover {
-  transform: scale(1.05);
+  background: rgba(148, 149, 146, 0.1);
+  transform: none;
 }
 
 .hamburger:active {
-  transform: scale(0.95);
+  background: rgba(148, 149, 146, 0.15);
+  transform: none;
 }
 
 .hamburger span {
-  width: 20px;
-  height: 2px;
+  width: 14px;
+  height: 1.5px;
   background: $color-text-dark;
-  border-radius: 2px;
+  border-radius: 1px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
 
 .hamburger--open span:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+  transform: rotate(45deg) translate(3px, 3px);
 }
 
 .hamburger--open span:nth-child(2) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  transform: rotate(-45deg) translate(3px, -3px);
 }
 
 /* Sidebar */
@@ -53,11 +104,9 @@
   left: 0;
   width: 320px;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.7);
+  background: #FFFFFF;
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(13.6px);
-  -webkit-backdrop-filter: blur(13.6px);
   border: 1px solid rgba(148, 149, 146, 0.15);
   border-left: none;
   border-top-left-radius: 0;
@@ -82,6 +131,45 @@
   border-bottom: 1px solid rgba(148, 149, 146, 0.15);
 }
 
+/* Add extra spacing for upload and review screens (non-deck) */
+.sidebar:not(.sidebar--deck) .sidebar__header {
+  padding-bottom: 23px;
+}
+
+/* Close button on right for deck screen only */
+.sidebar--deck .sidebar__header {
+  justify-content: flex-end;
+}
+
+.sidebar__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: $color-text-dark;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* For deck screen, ensure close is on the right */
+.sidebar--deck .sidebar__close {
+  margin-left: auto;
+}
+
+.sidebar__close:hover {
+  background: rgba(148, 149, 146, 0.1);
+}
+
+.sidebar__close:active {
+  background: rgba(148, 149, 146, 0.15);
+}
+
 .sidebar__title {
   font-size: 24px;
   font-weight: 600;
@@ -92,7 +180,7 @@
 }
 
 .sidebar__nav {
-  padding: 24px 0 16px 0;
+  padding: 27px 0 16px 0;
   border-bottom: 1px solid rgba(148, 149, 146, 0.15);
 }
 
@@ -129,7 +217,7 @@
 .sidebar__section {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0;
+  padding: 19px 0;
 }
 
 .sidebar__section-title {

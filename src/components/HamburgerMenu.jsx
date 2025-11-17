@@ -1,4 +1,4 @@
-// Hamburger Menu Button Component
+// hamburger menu button component
 const HamburgerMenu = ({ onClick, isOpen }) => {
   return (
     <button 
@@ -6,6 +6,7 @@ const HamburgerMenu = ({ onClick, isOpen }) => {
       onClick={onClick}
       aria-label="Toggle menu"
     >
+      {/* two lines that animate into an X when open */}
       <span></span>
       <span></span>
     </button>

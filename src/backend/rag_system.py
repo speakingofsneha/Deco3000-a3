@@ -1,3 +1,4 @@
+# retrieval-augmented generation system for creating slide content
 from typing import List, Dict, Any, Tuple, Set
 import logging
 import re
@@ -9,16 +10,134 @@ from .llm_service import get_llm_service
 
 logger = logging.getLogger(__name__)
 
-# rag system wraps retrieval-augmented generation for per-section slide content
+# system that uses rag to generate bullet points for slides from pdf content
 class RAGSystem:
+    # initialize rag system with llm and chunking services
     def __init__(self):
         self.llm_service = get_llm_service()
         self.chunking_service = ChunkingEmbeddingService()
-        self.all_seen_bullets = []  # Track all bullets to check for duplicates
+        self.all_seen_bullets = []  # track all bullets to check for duplicates
         self.narrative = None
         self.tone = None
-        self._is_research_section = False  # Track if current section is research
+        self._is_research_section = False  # track if current section is research
     
+    # determine section type and return query keywords
+    def _determine_section_type(self, outline_item: OutlineItem) -> tuple[str, str]:
+        """Determine section type and return query keywords"""
+        if not self.narrative:
+            return "general", ""
+        
+        outline_lower = outline_item.title.lower()
+        description_lower = (outline_item.description or "").lower()
+        text = f"{outline_lower} {description_lower}"
+        
+        # section type mappings
+        section_mappings = {
+            "problem_statement": (['problem statement', 'how might we', 'hmw'], ""),
+            "research": (['research', 'themes', 'findings', 'early findings', 'interview', 'survey', 'observation', 'ethnography'], "research methods findings themes insights"),
+            "problem": (['problem', 'overview', 'user', "what's the problem", 'challenge'], "user problem challenge"),
+            "context": (['context', 'setting', 'assignment', 'brief', 'scope'], "project scope constraints context assignment"),
+            "ideation": (['ideation', 'brainstorm', 'concept', 'direction', 'ideation methods'], "ideation concepts brainstorming directions sketches early concepts"),
+            "wireframes": (['wireframe', 'wireframes', 'wireframing', 'early designs', 'low-fidelity'], "wireframes wireframe early designs low-fidelity sketches interactions flows"),
+            "mockups": (['mockup', 'mockups', 'visual design', 'color palette', 'typography', 'spacing', 'layout'], "mockups mockup visual design color palette typography spacing layout design elements"),
+            "iterations": (['design process', 'iterations', 'iterative', 'evolution', 'rounds'], "design process iterations iterative evolution rounds changes modifications"),
+            "prototyping": (['prototype', 'prototyping', 'interactive', 'clickable'], "prototyping prototype tools interface decisions interactive clickable"),
+            "design": (['design', 'solution'], "design decisions solution"),
+            "testing": (['test', 'evaluation', 'feedback', 'testing', 'usability testing', 'test rounds'], "testing evaluation feedback usability test rounds participants observations"),
+            "outcome": (['outcome', 'final', 'result', 'impact'], "results impact outcomes final solution"),
+            "reflection": (["didn't go as planned", "what didn't", "learned", "reflection", "challenges", "adaptations", "compromises"], "challenges adaptations compromises lessons learned reflections what didn't work"),
+        }
+        
+        for section_type, (keywords, query_keywords) in section_mappings.items():
+            if any(word in text for word in keywords):
+                if section_type == "research":
+                    self._is_research_section = True
+                return section_type, query_keywords
+        
+        return "general", ""
+    
+    # extract exact text from narrative for a given section
+    def _extract_section_text_from_narrative(self, outline_item: OutlineItem) -> str:
+        """Extract the exact text from the narrative that corresponds to this outline section"""
+        if not self.narrative:
+            return ""
+        
+        import re
+        
+        # try to match the outline title to a section in the narrative
+        outline_title_lower = outline_item.title.lower().strip()
+        narrative = self.narrative
+        
+        # look for markdown headings like **title** or ## title
+        # also look for the title text directly
+        patterns = [
+            rf'\*\*{re.escape(outline_item.title)}\*\*',  # **exact title**
+            rf'\*\*{re.escape(outline_item.title.lower())}\*\*',  # **exact title lower**
+            rf'##\s+{re.escape(outline_item.title)}',  # ## exact title
+            rf'##\s+{re.escape(outline_item.title.lower())}',  # ## exact title lower
+        ]
+        
+        # also try partial matches for common variations
+        title_words = outline_title_lower.split()
+        if len(title_words) > 2:
+            # try matching first few words
+            partial_title = ' '.join(title_words[:3])
+            patterns.extend([
+                rf'\*\*.*?{re.escape(partial_title)}.*?\*\*',
+                rf'##\s+.*?{re.escape(partial_title)}.*?',
+            ])
+        
+        section_text = ""
+        section_start = -1
+        
+        # find the section start
+        for pattern in patterns:
+            match = re.search(pattern, narrative, re.IGNORECASE)
+            if match:
+                section_start = match.end()
+                break
+        
+        # if no markdown heading found, try to find the title text directly
+        if section_start == -1:
+            title_pattern = re.escape(outline_item.title)
+            match = re.search(title_pattern, narrative, re.IGNORECASE)
+            if match:
+                section_start = match.end()
+        
+        if section_start == -1:
+            # try matching by description keywords
+            if outline_item.description:
+                desc_words = outline_item.description.lower().split()[:3]
+                for word in desc_words:
+                    if len(word) > 4:  # only meaningful words
+                        match = re.search(rf'\*\*.*?{re.escape(word)}.*?\*\*', narrative, re.IGNORECASE)
+                        if match:
+                            section_start = match.end()
+                            break
+        
+        if section_start == -1:
+            return ""
+        
+        # find the next section (next markdown heading) or end of narrative
+        next_section_pattern = r'\*\*[^*]+\*\*|##\s+[^\n]+'
+        next_match = re.search(next_section_pattern, narrative[section_start:])
+        
+        if next_match:
+            section_text = narrative[section_start:section_start + next_match.start()].strip()
+        else:
+            section_text = narrative[section_start:].strip()
+        
+        # clean up the text - remove extra whitespace, keep paragraphs
+        section_text = re.sub(r'\n{3,}', '\n\n', section_text)
+        section_text = section_text.strip()
+        
+        # if we got a good chunk of text, return it
+        if len(section_text) > 20:
+            return section_text
+        
+        return ""
+    
+    # generate bullet points for an outline section using rag
     def generate_bullets_for_outline_item(
         self, 
         outline_item: OutlineItem, 
@@ -28,65 +147,78 @@ class RAGSystem:
     ) -> List[BulletPoint]:
         """Generate bullet points for an outline item using RAG, following the narrative"""
         
-        # reset flags so each section can decide whether it is research/process/etc
-        # Reset research section flag for this item
+        # reset section type flag for this item
         self._is_research_section = False
         
-        # Build query based on outline description and title to find relevant chunks
-        # The outline description tells us what content belongs in this section - prioritize it heavily
+        # extract exact text from narrative for this section
+        exact_narrative_text = self._extract_section_text_from_narrative(outline_item)
+        
+        # build search query from outline description and title
         query_parts = []
         if outline_item.description:
-            # Add description multiple times to increase its weight in semantic search
+            # add description twice to increase weight in semantic search
             query_parts.append(outline_item.description)
-            query_parts.append(outline_item.description)  # Double weight for description
+            query_parts.append(outline_item.description)
         query_parts.append(outline_item.title)
         
-        # If narrative exists, extract relevant themes for this section and identify section type
-        section_type = None
-        if self.narrative:
-            # Try to match outline item to narrative sections
-            narrative_lower = self.narrative.lower()
-            outline_lower = outline_item.title.lower()
-            description_lower = (outline_item.description or "").lower()
-            
-            # Identify section type based on narrative structure
-            if any(word in outline_lower or word in description_lower for word in ['research', 'themes', 'findings', 'early findings', 'interview', 'survey', 'observation', 'ethnography']):
-                section_type = "research"
-                self._is_research_section = True
-                query_parts.append("research methods findings themes insights")
-            elif any(word in outline_lower or word in description_lower for word in ['problem', 'overview', 'user', "what's the problem", 'challenge']):
-                section_type = "problem"
-                query_parts.append("user problem challenge")
-            elif any(word in outline_lower or word in description_lower for word in ['context', 'setting', 'assignment', 'brief', 'scope']):
-                section_type = "context"
-                query_parts.append("project scope constraints context assignment")
-            elif any(word in outline_lower or word in description_lower for word in ['ideation', 'brainstorm', 'concept', 'direction', 'ideation methods']):
-                section_type = "ideation"
-                query_parts.append("ideation concepts brainstorming directions sketches early concepts")
-            elif any(word in outline_lower or word in description_lower for word in ['wireframe', 'wireframes', 'wireframing', 'early designs', 'low-fidelity']):
-                section_type = "wireframes"
-                query_parts.append("wireframes wireframe early designs low-fidelity sketches interactions flows")
-            elif any(word in outline_lower or word in description_lower for word in ['mockup', 'mockups', 'visual design', 'color palette', 'typography', 'spacing', 'layout']):
-                section_type = "mockups"
-                query_parts.append("mockups mockup visual design color palette typography spacing layout design elements")
-            elif any(word in outline_lower or word in description_lower for word in ['design process', 'iterations', 'iterative', 'evolution', 'rounds']):
-                section_type = "iterations"
-                query_parts.append("design process iterations iterative evolution rounds changes modifications")
-            elif any(word in outline_lower or word in description_lower for word in ['prototype', 'prototyping', 'interactive', 'clickable']):
-                section_type = "prototyping"
-                query_parts.append("prototyping prototype tools interface decisions interactive clickable")
-            elif any(word in outline_lower or word in description_lower for word in ['design', 'solution']):
-                section_type = "design"
-                query_parts.append("design decisions solution")
-            elif any(word in outline_lower or word in description_lower for word in ['test', 'evaluation', 'feedback', 'testing', 'usability testing', 'test rounds']):
-                section_type = "testing"
-                query_parts.append("testing evaluation feedback usability test rounds participants observations")
-            elif any(word in outline_lower or word in description_lower for word in ['outcome', 'final', 'result', 'impact']):
-                section_type = "outcome"
-                query_parts.append("results impact outcomes final solution")
-            else:
-                section_type = "general"
+        # identify section type and add relevant keywords to query
+        section_type, query_keywords = self._determine_section_type(outline_item)
+        if query_keywords:
+            query_parts.append(query_keywords)
         
+        # if we have exact narrative text, use it as-is and add intelligent expansion
+        if exact_narrative_text:
+            # use the entire exact narrative text as-is (don't truncate or modify it)
+            base_text = exact_narrative_text.strip()
+            
+            # problem statement sections should remain exactly as-is, no expansion
+            if section_type == "problem_statement":
+                bullets = [base_text] if base_text else []
+                return self._create_bullets_with_provenance(bullets, [], base_text, outline_item.title, "using exact narrative text as-is (problem statement)")
+            
+            # search for similar chunks to add intelligent expansion based on section type
+            query = " ".join(query_parts)
+            similar_chunks = self.chunking_service.search_similar_chunks(query, top_k)
+            
+            expansion_text = ""
+            if similar_chunks:
+                # sort chunks by page and position to maintain chronological order
+                similar_chunks = sorted(similar_chunks, key=lambda x: (
+                    x[0].page_number if hasattr(x[0], 'page_number') else 0,
+                    x[0].chunk_index if hasattr(x[0], 'chunk_index') else 0
+                ))
+                
+                # prepare context string from chunks
+                context = self._prepare_context(similar_chunks)
+                
+                # generate intelligent expansion based on section type and outline (max 2-3 sentences)
+                expansion_text = self._generate_intelligent_expansion(
+                    outline_item,
+                    base_text,
+                    context,
+                    section_type
+                )
+            
+            # combine base text and expansion
+            bullets = [base_text] if base_text else []
+            if expansion_text and expansion_text.strip():
+                bullets.append(expansion_text.strip())
+            
+            # create bullet points with provenance
+            return self._create_bullets_with_provenance(bullets, similar_chunks if similar_chunks else [], base_text, outline_item.title, "using exact narrative text with intelligent expansion")
+        
+        # fallback: if no exact narrative text found, use original generation method
+        # for problem statement sections, use exact text from outline description without any changes
+        if section_type == "problem_statement" and outline_item.description:
+            exact_text = outline_item.description.strip()
+            if exact_text:
+                return [BulletPoint(
+                    text=exact_text,
+                    provenance=[],
+                    confidence=1.0
+                )]
+        
+        # search for similar chunks using vector similarity
         query = " ".join(query_parts)
         similar_chunks = self.chunking_service.search_similar_chunks(query, top_k)
         
@@ -94,16 +226,16 @@ class RAGSystem:
             logger.warning(f"No chunks found for: {outline_item.title}")
             return []
         
-        # Sort chunks chronologically (by page_number, then chunk_index)
+        # sort chunks by page and position to maintain chronological order
         similar_chunks = sorted(similar_chunks, key=lambda x: (
             x[0].page_number if hasattr(x[0], 'page_number') else 0,
             x[0].chunk_index if hasattr(x[0], 'chunk_index') else 0
         ))
         
-        # Prepare context
+        # prepare context string from chunks
         context = self._prepare_context(similar_chunks)
         
-        # Generate bullets with LLM
+        # generate bullets using llm
         bullets_text = self._generate_bullets_with_llm(
             outline_item, 
             context, 
@@ -111,67 +243,172 @@ class RAGSystem:
             section_type
         )
         
-        # Parse and clean bullets
+        # parse bullets from llm response
         bullets = self._parse_bullets(bullets_text)
         
-        # Remove duplicates and low quality
+        # filter out duplicates and low quality bullets
         bullets = self._filter_bullets(bullets)
         
-        # Suppress repeated phrases and near-duplicates more aggressively
+        # remove repeated phrases
         bullets = self._deduplicate_phrases(bullets)
         
-        # Inject outline description as anchor if provided
+        # merge outline description into bullets if needed
         bullets = self._merge_outline_description(outline_item.description, bullets, max_bullets)
         
-        # Add provenance
-        page_numbers = sorted(list(set([chunk.page_number for chunk, _ in similar_chunks])))
-        provenance_pages = [f"Page {page}" for page in page_numbers]
+        # create bullet points with provenance
+        return self._create_bullets_with_provenance(bullets, similar_chunks, None, outline_item.title)
+    
+    # create bullet point objects with provenance
+    def _create_bullets_with_provenance(
+        self, 
+        bullets: List[str], 
+        similar_chunks: List[Tuple[Chunk, float]], 
+        base_text: str = None,
+        section_title: str = "",
+        log_suffix: str = ""
+    ) -> List[BulletPoint]:
+        """Create bullet point objects with provenance"""
+        # get page provenance
+        page_numbers = []
+        if similar_chunks:
+            page_numbers = sorted(list(set([chunk.page_number for chunk, _ in similar_chunks])))
+        provenance_pages = [f"Page {page}" for page in page_numbers] if page_numbers else []
         
+        # create bullet point objects
         bullets_with_provenance = []
         for bullet_text in bullets:
-            bullet_with_provenance = BulletPoint(
-                text=bullet_text,
-                provenance=provenance_pages,
-                confidence=0.85
-            )
-            bullets_with_provenance.append(bullet_with_provenance)
-            self.all_seen_bullets.append(bullet_text.lower())
+            if bullet_text and len(bullet_text.strip()) > 10:
+                confidence = 1.0 if base_text and bullet_text == base_text else 0.85
+                bullet_with_provenance = BulletPoint(
+                    text=bullet_text.strip(),
+                    provenance=provenance_pages,
+                    confidence=confidence
+                )
+                bullets_with_provenance.append(bullet_with_provenance)
+                self.all_seen_bullets.append(bullet_text.lower())
         
-        logger.info(f"  Generated {len(bullets_with_provenance)} bullets for: {outline_item.title}")
+        suffix = f" ({log_suffix})" if log_suffix else ""
+        logger.info(f"  Generated {len(bullets_with_provenance)} bullets for: {section_title}{suffix}")
         return bullets_with_provenance
     
+    # prepare context string from chunks for llm
     def _prepare_context(self, similar_chunks: List[Tuple[Chunk, float]]) -> str:
         """Prepare context from chunks, maintaining chronological order"""
         context_parts = []
         
-        # Chunks are already sorted chronologically, so process in order
-        # Use more chunks to provide comprehensive context
-        for i, (chunk, score) in enumerate(similar_chunks[:14], 1):  # use top 14 for context to reduce token count
+        # process top chunks in chronological order
+        for i, (chunk, score) in enumerate(similar_chunks[:14], 1):
             section = chunk.metadata.get('section_title', 'Unknown')
             page = chunk.page_number
             chunk_index = chunk.chunk_index if hasattr(chunk, 'chunk_index') else i
             
-            # Clean chunk text
+            # clean chunk text before adding to context
             chunk_text = self._clean_chunk_for_context(chunk.text)
             
             if chunk_text and len(chunk_text.strip()) > 30:
-                # Include order information to help LLM maintain chronology
+                # format chunk with order info to maintain chronology
                 context_part = f"[Source {i}, Page {page}, Order {chunk_index}] {section}:\n{chunk_text}\n---\n"
             context_parts.append(context_part)
         
         return "\n".join(context_parts)
     
+    # clean chunk text by removing artifacts and incomplete sentences
     def _clean_chunk_for_context(self, text: str) -> str:
         """Clean chunk text for context preparation"""
         import re
-        # Remove page number patterns
+        # remove page number patterns like "4-10"
         text = re.sub(r'\b\d+-\d+\b', '', text)
         text = re.sub(r'\b\d{1,2}\s*=\s*\d+', '', text)
-        # Remove incomplete sentences ending with "...."
+        # fix incomplete sentences ending with multiple dots
         text = re.sub(r'\.{3,}\s*$', '.', text, flags=re.MULTILINE)
-        # Remove standalone methodology words
+        # remove standalone methodology words without context
         text = re.sub(r'\b(think aloud|heuristic evaluation|interviews|understand|empathise|define|ideate|conceptualise)\b(?=\s|$)', '', text, flags=re.IGNORECASE)
         return text.strip()
+    
+    # build narrative instruction for llm prompt
+    def _build_narrative_instruction(self, outline_item: OutlineItem, section_restrictions: str) -> str:
+        """Build narrative instruction string for LLM prompt"""
+        return f"""
+CRITICAL: CASE STUDY NARRATIVE AND OUTLINE (USE AS YOUR GUIDE):
+{self.narrative}
+
+OUTLINE SECTION INFORMATION:
+- Section Title: "{outline_item.title}"
+- Section Description: "{outline_item.description or 'No description provided'}"
+
+NARRATIVE AND OUTLINE REQUIREMENTS:
+- The narrative provides story structure - USE IT AS A GUIDE
+- The OUTLINE SECTION tells you EXACTLY what content belongs in THIS section - USE IT AS YOUR PRIMARY GUIDE
+- CRITICAL: ONLY EXPAND the narrative by 1-2 sentences per section. Do not add extensive new content.
+- CRITICAL: DO NOT mention appendices, appendixes, or "see appendix" - keep everything self-contained.
+- Use simple, clear, human language - write like you're talking to a friend. Avoid complex words, jargon, or convoluted sentences. Keep it straightforward and easy to understand.
+- Be SPECIFIC about problems, users, methods, and outcomes.
+- DO NOT append meta notes or explanations.
+
+{section_restrictions}
+"""
+    
+    # generate intelligent expansion based on section type and outline meaning
+    def _generate_intelligent_expansion(self, outline_item: OutlineItem, base_text: str, context: str, section_type: str = None) -> str:
+        """Generate intelligent expansion that stays grounded in the outline and is guided by section type"""
+        
+        # determine what kind of expansion to add based on section type
+        expansion_guidance = {
+            "research": "Add 2-3 sentences about the research methods used and what they revealed. Be specific about methods, participants, and findings.",
+            "ideation": "Add 2-3 sentences about how ideas were developed or refined. Describe the ideation process and concept evolution.",
+            "testing": "Add 2-3 sentences about what was tested and what was learned. Include specific testing methods and key findings.",
+            "wireframes": "Add 2-3 sentences about the wireframing process, key design decisions, or how wireframes evolved.",
+            "mockups": "Add 2-3 sentences about visual design choices, color palette, typography, or layout decisions.",
+            "prototyping": "Add 2-3 sentences about the prototyping process, tools used, or interactive decisions made.",
+            "iterations": "Add 2-3 sentences about how the design changed between iterations and why.",
+            "problem": "Add 2-3 sentences about specific user problems or challenges identified.",
+            "outcome": "Add 2-3 sentences about the final results, impact, or how goals were met.",
+            "reflection": "Add 2-3 sentences about specific challenges faced or lessons learned.",
+        }
+        
+        guidance = expansion_guidance.get(section_type, "Add 2-3 sentences that expand on the outline with relevant details from the source material.")
+        
+        prompt = f"""Expand this case study section with 2-3 sentences that stay grounded in the outline.
+
+OUTLINE SECTION:
+- Title: "{outline_item.title}"
+- Description: "{outline_item.description or ''}"
+
+EXACT OUTLINE TEXT (DO NOT REPEAT THIS):
+{base_text}
+
+SOURCE MATERIAL:
+{context}
+
+YOUR TASK:
+{guidance}
+
+CRITICAL REQUIREMENTS:
+1. Add ONLY 2-3 sentences maximum that expand on the outline meaning
+2. Stay grounded in the outline - don't add irrelevant or made-up content
+3. Don't repeat what's already in the outline text
+4. Use simple, clear, human language - write like you're talking to a friend
+5. Be SPECIFIC: include numbers, participant counts, method names, exact findings from source material
+6. Write in FIRST PERSON (I, we, my, our)
+7. DO NOT mention appendices
+8. Make sure the expansion aligns with the intended meaning of the outline section
+9. MAXIMUM 2-3 sentences - do not exceed this limit
+
+Output ONLY the 2-3 expansion sentences. No explanations."""
+        
+        try:
+            messages = [
+                {"role": "system", "content": "You expand case study content intelligently. You stay grounded in the outline meaning and add only relevant details. Use simple, clear language. Don't repeat outline text. Don't add irrelevant content. Maximum 2-3 sentences only."},
+                {"role": "user", "content": prompt}
+            ]
+            response = self.llm_service.generate_chat_completion(messages, max_tokens=150, temperature=0.5)
+            expansion = re.sub(r'^[-•*]\s+', '', response.strip())
+            if expansion and not expansion.endswith(('.', '!', '?')):
+                expansion = expansion.rstrip('.') + '.'
+            return expansion
+        except Exception as e:
+            logger.error(f"Error generating expansion: {str(e)}")
+            return ""
     
     def _generate_bullets_with_llm(
         self, 
@@ -219,38 +456,7 @@ SECTION-SPECIFIC REQUIREMENTS (CRITICAL):
 - Focus on content that matches this section's purpose as defined in the narrative.
 """
             
-            narrative_instruction = f"""
-CRITICAL: CASE STUDY NARRATIVE AND OUTLINE (USE AS YOUR GUIDE):
-{self.narrative}
-
-OUTLINE SECTION INFORMATION:
-- Section Title: "{outline_item.title}"
-- Section Description: "{outline_item.description or 'No description provided'}"
-
-NARRATIVE AND OUTLINE REQUIREMENTS:
-- The narrative above provides the story structure and flow for this case study - USE IT AS A GUIDE to understand the overall story
-- The OUTLINE SECTION (title and description) tells you EXACTLY what content belongs in THIS specific section - USE IT AS YOUR PRIMARY GUIDE for determining what chunks/content should go here
-- The outline section description defines the scope and purpose of this section - extract ALL relevant content from the source material that matches this description
-- Use the narrative to understand the section's purpose within the overall story, then use the OUTLINE DESCRIPTION to determine which specific chunks and content from the source material belong in this section
-- GENERATE COMPREHENSIVE, DETAILED content from the source material that matches the outline section's description - don't be minimal or sparse
-- The narrative follows a structured case study format covering: project title, description, team/role, context, problem, research, problem statement, constraints, design goals, ideation, wireframes, mockups, design process and iterations, prototyping, testing, final outcome, and reflections
-- CRITICAL: Pay special attention to process sections: ideation, wireframes, mockups, design process/iterations, prototyping, and testing. These sections should contain DETAILED information about the design process.
-- Each bullet point should support the narrative's themes for this section AND match the outline section's description - be DETAILED and COMPREHENSIVE
-- Make bullet points tell part of the story as defined in the narrative, using rich details from the source material that align with the outline section
-- Connect bullet points to the overall narrative arc and ensure they flow chronologically
-- If the narrative mentions specific themes, problems, or solutions, your bullets should reflect those, but EXPAND on them with details from the source material
-- The narrative guides WHAT to include and WHERE - the OUTLINE SECTION DESCRIPTION tells you which specific content belongs here - the source material provides the DETAILS and SPECIFICS
-- CRITICAL: Generate FULL, DETAILED content for this section. The outline section description is your guide for what content should go here - use it to extract ALL relevant information from the source material. Don't be minimal - create comprehensive bullets that fully cover what the outline section describes
-- Content should primarily appear in the section where it's most relevant according to the outline description, but you can include supporting details as needed
-- IMPORTANT: Use the outline section description to identify which chunks from the source material are relevant to this section, then generate comprehensive content from those chunks
-- DO NOT mention appendices, supplemental materials, or instructions to "see appendix"—keep every statement self-contained within the slide content
-- DO NOT introduce new section headings. Reuse the exact headings from the student's narrative (e.g., "**tldr;**", "**Team and Constraints**", etc.) and ensure the content you generate fits within those sections.
-- The final narrative that the student will submit must stay between 500 and 700 words. Keep bullets information-rich but concise so that the total prose stays within that limit. Remove redundancy and avoid repeating details across sections.
-- Use clear, concise, human-sounding language—avoid robotic phrasing or generic filler. Be SPECIFIC about problems, users, methods, and outcomes.
-- DO NOT append meta notes or explanations (e.g., “Note: this section...”); end once the actual content is complete.
-
-{section_restrictions}
-"""
+            narrative_instruction = self._build_narrative_instruction(outline_item, section_restrictions)
         
         tone_instruction = ""
         if self.tone:
@@ -262,56 +468,36 @@ OUTLINE SECTION:
 - Title: "{outline_item.title}"
 - Description: "{outline_item.description or 'No description provided'}"
 
-CASE STUDY NARRATIVE (USE AS YOUR GUIDE FOR STORY STRUCTURE):
+CASE STUDY NARRATIVE (USE AS YOUR GUIDE):
 {self.narrative if self.narrative else "No narrative provided"}
 
-SOURCE MATERIAL (ordered chronologically - extract content that matches the outline section description):
+SOURCE MATERIAL:
 {context}
 
 YOUR TASK:
-Write {max_bullets} bullet points (or more if needed to fully cover the outline section) that tell the case study story. The OUTLINE SECTION DESCRIPTION above tells you EXACTLY what content belongs in this section - use it to identify which chunks from the source material are relevant, then extract ALL relevant information from those chunks to generate comprehensive content.
-
-CRITICAL: You must extract information from MULTIPLE chunks. Do not just use one or two chunks - go through ALL the source material chunks provided and extract EVERY piece of information that matches the outline section description. Generate multiple bullets from each relevant chunk if needed. The goal is to create COMPREHENSIVE content that fully covers what the outline section describes.
+Generate ONLY 1-2 bullet points. Use the OUTLINE SECTION DESCRIPTION to identify relevant chunks. CRITICAL: ONLY LIGHTLY EXPAND the narrative by 1-2 bullet points per section.
 
 CRITICAL REQUIREMENTS:
-1. The OUTLINE SECTION DESCRIPTION is your PRIMARY GUIDE - it tells you what content belongs in this section. Use it to identify which chunks from the source material are relevant, then extract ALL relevant information from those chunks.
-2. The narrative provides context for the overall story structure - use it to understand how this section fits into the bigger picture, but let the OUTLINE DESCRIPTION guide what specific content goes here.
-3. Use the source material to find SPECIFIC, DETAILED information that matches the outline section description - be THOROUGH and COMPREHENSIVE, not minimal. Generate FULL content for this section.
-4. Write complete, finished sentences - never leave sentences incomplete
-5. Each bullet should be 30-100 words (can be longer if needed for clarity and detail) - prioritize being DETAILED and COMPREHENSIVE over being brief
-6. BE SPECIFIC AND PRECISE - Include exact details: numbers, participant counts, specific method names, exact findings, specific quotes or insights, exact statistics
-7. DO NOT use vague statements - extract SPECIFIC problems, SPECIFIC findings, SPECIFIC methods from source material
-8. Write in FIRST PERSON when appropriate (I, we, my, our) to match the narrative style
-9. For research methods: include exact method names, participant numbers, duration, specific findings
-10. Focus on concrete details, user insights, or design decisions that match the outline section description - GENERATE FULL CONTENT, not sparse summaries
-11. Each bullet must provide unique information - avoid repeating concepts, but be COMPREHENSIVE within each bullet
-12. Ensure bullets follow chronological order (source material is already ordered)
-13. Write in the same engaging, story-driven style as the narrative
-14. CRITICAL: Generate FULL, DETAILED content for this section. The outline section description tells you what content belongs here - use it to extract ALL relevant information from the source material. Create RICH, COMPREHENSIVE bullets that fully cover what the outline section describes. Don't be minimal or sparse - generate substantial content.
-15. Only include research methods (like "online ethnography", "user generated content") in research sections. Research content should appear in the research section, but other sections should have their own comprehensive content from the source material.
-16. DO NOT repeat the exact same information across sections, but each section should be FULL and DETAILED with content relevant to its purpose as defined by the outline description.
-17. IMPORTANT: Use the outline section description to guide which chunks from the source material are relevant to this section. Then generate comprehensive, detailed bullets from ALL relevant chunks - don't skip content that matches the outline description.
-18. CRITICAL: Extract information from MULTIPLE chunks. Review ALL chunks provided and extract information from each one that matches the outline section description. If a chunk contains multiple relevant pieces of information, create multiple bullets from it. Do not limit yourself to just a few chunks - be thorough and extract from as many relevant chunks as possible.
-19. The outline section description is your filter - if content in a chunk matches what the outline describes, extract it. Generate enough bullets to fully cover what the outline section describes - aim for comprehensive coverage, not minimal summaries.
-
-ABSOLUTE PROHIBITIONS:
-- DO NOT include meta-commentary like "Based on the narrative", "I've extracted", "Here are", etc.
-- DO NOT reference the narrative or your process - just write the content
-- DO NOT leave sentences incomplete or end with "...."
-- DO NOT repeat concepts already covered in other bullets
-- DO NOT use the slide title as a template - use the narrative structure instead
-- DO NOT append summarising notes such as "Note: this content..."—finish with the final bullet content only
+1. Generate ONLY 1-2 bullet points per section
+2. Use simple, clear, human language - write like you're talking to a friend. Avoid complex words, jargon, or convoluted sentences. Keep sentences short and straightforward.
+3. BE SPECIFIC AND PRECISE - Include exact details: numbers, participant counts, method names, findings
+4. Write in FIRST PERSON (I, we, my, our) to match narrative style
+5. Write complete, finished sentences - never incomplete
+6. Each bullet 30-80 words - concise and focused
+7. DO NOT use vague statements
+8. DO NOT mention appendices or supplementary materials
+9. DO NOT include meta-commentary
 
 {tone_instruction if self.tone else ""}
 
-Output ONLY the bullet points, one per line, starting with "- ". No explanations, no meta-text, just the content.
+Output ONLY bullet points, one per line, starting with "- ". No explanations.
 """
         
         try:
             messages = [
                 {
                     "role": "system", 
-                    "content": "You are an expert at creating presentation slides that tell compelling stories. You use the OUTLINE SECTION DESCRIPTION as your PRIMARY GUIDE to determine what content belongs in each section, then use the narrative to understand the overall story structure. You generate COMPREHENSIVE, DETAILED content from the source material that matches the outline section description. You write in a CLEAR, CONVERSATIONAL, and COMPELLING style - use simple, direct language, avoid convoluted sentences. Write like a student telling their story. You extract SPECIFIC, PRECISE, DETAILED information from source material - exact numbers, participant counts, specific method names, exact findings, specific quotes. You generate FULL, RICH content - don't be minimal or sparse. You use the outline section description to identify which chunks from the source material are relevant, then extract ALL relevant information from MULTIPLE chunks to create comprehensive bullets. You go through ALL provided chunks and extract information from each one that matches the outline description. You generate multiple bullets from each relevant chunk if needed. You write in FIRST PERSON when appropriate. You NEVER use vague statements - always be specific and precise. You present information in a way that supports the narrative's story arc with comprehensive details. You NEVER include meta-commentary, explanations, or references to your process. You ONLY write the actual content for the slides - complete, finished sentences that tell the story with precise, detailed information in a clear, conversational style. Generate COMPREHENSIVE content that fully covers what the outline section describes by extracting from MULTIPLE chunks, not minimal summaries from just one or two chunks."
+                    "content": "You create presentation slides that tell compelling stories. Use OUTLINE SECTION DESCRIPTION as your PRIMARY GUIDE. Generate ONLY 1-2 bullet points per section. Use simple, clear, human language - write like you're talking to a friend. Avoid complex words, jargon, or convoluted sentences. Write in CLEAR, CONVERSATIONAL style. Extract SPECIFIC, PRECISE details from source material. Write in FIRST PERSON. NEVER use vague statements. NEVER include meta-commentary. Keep expansion minimal - 1-2 bullet points only."
                 },
                 {"role": "user", "content": prompt}
             ]
@@ -328,8 +514,10 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
             logger.error(f"Error generating bullets: {str(e)}")
             return ""
     
+    # parse bullet points from llm response text
     def _parse_bullets(self, response_text: str) -> List[str]:
         """Parse bullets from LLM response"""
+        import re
         lines = response_text.strip().split('\n')
         bullets = []
         
@@ -339,17 +527,25 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
             if not line:
                 continue
             
-            # Remove bullet symbols
+            # remove any mentions of appendices
+            line = re.sub(r'\b(appendix|appendices|appendixes|see appendix|refer to appendix|appendix \d+|appendix [a-z])\b', '', line, flags=re.IGNORECASE)
+            line = re.sub(r'\b(supplementary materials?|see supplementary|refer to supplementary)\b', '', line, flags=re.IGNORECASE)
+            line = line.strip()
+            
+            if not line:
+                continue
+            
+            # remove bullet symbols like "-", "•", "*", etc
             for symbol in ['-', '•', '*', '○', '1.', '2.', '3.', '4.', '5.']:
                 if line.startswith(symbol):
                     line = line[len(symbol):].strip()
                     break
             
-            # Skip headers or instructions
+            # skip headers or very short lines
             if ':' in line[:20] or len(line) < 15:
                 continue
             
-            # Skip meta-text and incomplete sentences
+            # skip meta-text that references the process
             skip_phrases = [
                 'bullet point', 'slide', 'here are', 'following', 
                 'based on', 'i\'ve extracted', 'i have extracted',
@@ -361,14 +557,15 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
             if any(phrase in line_lower[:50] for phrase in skip_phrases):
                 continue
             
-            # Skip incomplete sentences ending with "...."
+            # skip incomplete sentences
             if line.strip().endswith('....') or line.strip().endswith('...'):
                 continue
             
-            # Skip sentences that are too short or incomplete
+            # skip very short lines
             if len(line.strip()) < 20:
                 continue
             
+            # add valid bullet point
             if len(line) > 15 and len(line) < 300:
                 bullets.append(line)
         
@@ -378,25 +575,16 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
         """Remove bullets that repeat common subphrases; keep the first occurrence."""
         if not bullets:
             return bullets
-        phrases = [
-            'pen and paper', 'current system', 'as mentioned', 'as discussed',
-            'online ethnography', 'user generated content', 'ethnography',
-            'research method', 'research finding', 'participant'
-        ]
+        phrases = ['pen and paper', 'current system', 'as mentioned', 'as discussed', 'online ethnography', 'user generated content', 'ethnography', 'research method', 'research finding', 'participant']
         seen_keys: Set[str] = set()
         result: List[str] = []
         for b in bullets:
             b_norm = ' '.join(b.lower().split())
-            key = None
-            for p in phrases:
-                if p in b_norm:
-                    key = p
-                    break
+            key = next((p for p in phrases if p in b_norm), None)
+            if key and key in seen_keys:
+                continue
             if key:
-                if key in seen_keys:
-                    continue
                 seen_keys.add(key)
-            # Do not trim sentences; preserve full bullet text
             result.append(b.strip())
         return result
 
@@ -452,78 +640,31 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
     
     def _has_repeated_concept(self, bullet: str, existing_bullets: List[str]) -> bool:
         """Check if bullet repeats the same concept as existing bullets"""
-        bullet_lower = bullet.lower()
-        
-        # Extract key phrases (3-4 word phrases)
-        bullet_words = bullet_lower.split()
-        bullet_phrases = []
-        for i in range(len(bullet_words) - 2):
-            phrase = ' '.join(bullet_words[i:i+3])
-            if len(phrase) > 10:  # Only meaningful phrases
-                bullet_phrases.append(phrase)
-        
-        # Check against existing bullets (less aggressive - allow more content)
+        bullet_words = bullet.lower().split()
+        bullet_phrases = [' '.join(bullet_words[i:i+3]) for i in range(len(bullet_words) - 2) if len(' '.join(bullet_words[i:i+3])) > 10]
         for existing in existing_bullets:
-            existing_lower = existing.lower()
-            # Count overlapping phrases
-            overlap_count = sum(1 for phrase in bullet_phrases if phrase in existing_lower)
-            if overlap_count >= 3:
+            if sum(1 for phrase in bullet_phrases if phrase in existing.lower()) >= 3:
                 return True
-        
         return False
     
     def _contains_research_methods(self, bullet: str) -> bool:
         """Check if bullet contains research-specific methods or content"""
-        bullet_lower = bullet.lower()
-        research_keywords = [
-            'online ethnography', 'ethnography', 'user generated content',
-            'interview', 'survey', 'observation', 'focus group',
-            'participant', 'research method', 'research finding',
-            'thematic analysis', 'affinity mapping', 'user research'
-        ]
-        return any(keyword in bullet_lower for keyword in research_keywords)
+        research_keywords = ['online ethnography', 'ethnography', 'user generated content', 'interview', 'survey', 'observation', 'focus group', 'participant', 'research method', 'research finding', 'thematic analysis', 'affinity mapping', 'user research']
+        return any(keyword in bullet.lower() for keyword in research_keywords)
     
     def _is_good_bullet(self, bullet: str) -> bool:
         """Check if bullet is good quality"""
-        
         bullet_lower = bullet.lower()
+        bad_phrases = ['key information', 'main points', 'this section', 'the following', 'as mentioned', 'provides information', 'based on the', 'i\'ve extracted', 'i have extracted', 'according to the', 'as discussed', 'the above', 'case study narrative', 'source material', 'provided narrative', 'based on the provided', 'extracted insights', 'following insights']
+        good_words = ['user', 'task', 'design', 'application', 'feature', 'research', 'problem', 'solution', 'interface', 'experience', 'specific', 'focused', 'simple', 'easy', 'quick']
         
-        # Reject generic phrases and meta-text
-        bad_phrases = [
-            'key information', 'main points', 'this section', 
-            'the following', 'as mentioned', 'provides information',
-            'based on the', 'i\'ve extracted', 'i have extracted',
-            'according to the', 'as discussed', 'the above',
-            'case study narrative', 'source material', 'provided narrative',
-            'based on the provided', 'extracted insights', 'following insights'
-        ]
-        
-        for phrase in bad_phrases:
-            if phrase in bullet_lower:
+        if any(phrase in bullet_lower for phrase in bad_phrases):
                 return False
-        
-        # Reject incomplete sentences
-        if bullet.strip().endswith('....') or bullet.strip().endswith('...'):
+        if bullet.strip().endswith(('....', '...')):
             return False
-        
-        # Reject very short bullets
-        if len(bullet.strip()) < 20:
-                return False
-        
-        # Length check
-        if len(bullet) < 20 or len(bullet) > 600:
+        if not (20 <= len(bullet) <= 600):
             return False
-        
-        # Should have some specific content
-        good_words = [
-            'user', 'task', 'design', 'application', 'feature',
-            'research', 'problem', 'solution', 'interface', 'experience',
-            'specific', 'focused', 'simple', 'easy', 'quick'
-        ]
-        
-        has_content = any(word in bullet_lower for word in good_words)
-        
-        return has_content
+        return any(word in bullet_lower for word in good_words)
     
     def _merge_outline_description(self, description: str, bullets: List[str], max_bullets: int) -> List[str]:
         """ensure the outline description anchors the section content"""
@@ -546,25 +687,19 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
         return [expanded_desc] + trimmed
 
     def _expand_outline_description(self, description: str) -> str:
-        """lightly expand the user's outline description into 2-3 sentences"""
+        """lightly expand the user's outline description into 1-2 sentences maximum"""
         import re
         desc = description.strip()
         if not desc:
             return desc
-        
         sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', desc) if s.strip()]
-        
-        if len(sentences) >= 3:
-            return ' '.join(sentences[:3])
-        if len(sentences) == 2:
-            return ' '.join(sentences)
-        
-        # only one sentence available; add two gentle follow-ups to keep context
-        base = sentences[0]
-        follow_up = " This section keeps exactly to that intention, echoing the edits you made to the outline."
-        bridge = " It simply adds a touch more clarity so the case study reads smoothly while staying true to your wording."
-        return base + follow_up + bridge
+        if len(sentences) >= 2:
+            return ' '.join(sentences[:2])
+        if len(sentences) == 1:
+            return sentences[0] + " This section expands on that with relevant details from the project."
+        return desc
     
+    # generate bullets for all outline items
     def generate_comprehensive_bullets(
         self, 
         outline_items: List[OutlineItem], 
@@ -574,12 +709,12 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
     ) -> Dict[str, List[BulletPoint]]:
         """Generate bullets for all outline items"""
         
-        # reset cache so duplicates are only filtered within this deck
-        # Reset for new deck
+        # reset seen bullets list for new deck
         self.all_seen_bullets = []
         
         results = {}
         
+        # generate bullets for each outline section in the exact order provided
         for outline_item in outline_items:
             logger.info(f"Generating bullets for: {outline_item.title}")
             
@@ -590,6 +725,8 @@ Output ONLY the bullet points, one per line, starting with "- ". No explanations
                 max_bullets_per_item
             )
             
+            # ensure we only keep 1-2 bullets per section
+            bullets = bullets[:max_bullets_per_item]
             results[outline_item.title] = bullets
         
         return results

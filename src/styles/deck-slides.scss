@@ -454,23 +454,182 @@ $color-slide-text-muted-dark: #9ca3af;
   grid-column: 1 / -1;
 }
 
-/* 3) 3 points in list (force vertical list) */
-.slide.layout--list-3 .points {
-  grid-template-columns: 1fr !important;
+/* ============================================
+   Text Only Layouts
+   ============================================ */
+
+/* Key statement (1 point) - already handled by single point styles */
+.slide.layout--key-statement .points {
+  grid-template-columns: 1fr;
+  max-width: 100ch;
+  margin: 0 auto;
 }
 
-.slide.layout--list-3 .points .point {
+.slide.layout--key-statement .points .point {
+  font-size: 36px;
+  line-height: 1.2;
+  font-weight: 500;
+  text-align: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Two column description (2 points) - already handled by 2 points styles */
+.slide.layout--two-col-description .points {
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Three points (3 blocks horizontally) - already handled by 3 points styles */
+.slide.layout--three-points .points {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* Three points in list (vertical list) */
+.slide.layout--three-points-list .points {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.slide.layout--three-points-list .points .point {
   position: relative;
-  padding-left: 18px;
+  padding-left: 24px;
+  background: transparent;
+  border: none;
+  text-align: left;
 }
 
-.slide.layout--list-3 .points .point::before {
-  content: "?";
+.slide.layout--three-points-list .points .point::before {
+  content: "•";
   position: absolute;
   left: 0;
   top: 0;
   line-height: 1.6;
-  color: $color-slide-text-muted;
+  color: $color-slide-text;
+  font-size: 20px;
+}
+
+/* Four points (4 blocks horizontally) */
+.slide.layout--four-points .points {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Four points in grid (2x2 grid) */
+.slide.layout--four-points-grid .points {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.slide.layout--four-points-grid .points .point {
+  background: $color-slide-card-bg;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Four points in grid below (header + text + 2x2 grid) */
+.slide.layout--four-points-grid-below .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.slide.layout--four-points-grid-below .heading {
+  margin-bottom: 16px;
+}
+
+.slide.layout--four-points-grid-below .intro-text {
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: $color-slide-text-secondary;
+}
+
+.slide.layout--four-points-grid-below .points {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.slide.layout--four-points-grid-below .points .point {
+  background: $color-slide-card-bg;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Six points (header + text + 3x2 grid) */
+.slide.layout--six-points .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.slide.layout--six-points .heading {
+  margin-bottom: 16px;
+}
+
+.slide.layout--six-points .intro-text {
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: $color-slide-text-secondary;
+}
+
+.slide.layout--six-points .points {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.slide.layout--six-points .points .point {
+  background: $color-slide-card-bg;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Dark mode for text-only layouts */
+.slide--dark.layout--four-points-grid .points .point,
+.slide--dark.layout--four-points-grid-below .points .point,
+.slide--dark.layout--six-points .points .point,
+.slide__canvas--dark.layout--four-points-grid .points .point,
+.slide__canvas--dark.layout--four-points-grid-below .points .point,
+.slide__canvas--dark.layout--six-points .points .point {
+  background: $color-slide-card-dark-bg;
+  color: $color-slide-text-light;
+}
+
+.slide--dark.layout--four-points-grid-below .intro-text,
+.slide--dark.layout--six-points .intro-text,
+.slide__canvas--dark.layout--four-points-grid-below .intro-text,
+.slide__canvas--dark.layout--six-points .intro-text {
+  color: $color-slide-text-muted-dark;
+}
+
+.slide--dark.layout--three-points-list .points .point::before,
+.slide__canvas--dark.layout--three-points-list .points .point::before {
+  color: $color-slide-text-light;
 }
 
 /* Remove card styling - points are just paragraphs */
@@ -502,133 +661,239 @@ $color-slide-text-muted-dark: #9ca3af;
   color: $color-slide-text-muted-dark;
 }
 
-.slide.layout--text-top-image-bottom .slide__content {
+/* ============================================
+   Image + Text Layouts
+   ============================================ */
+
+/* Media + description below (image on top, text below) */
+.slide.layout--media-description-below .slide__content {
   display: flex;
   flex-direction: column;
   gap: 32px;
   padding: 64px;
 }
 
-.slide.layout--text-top-image-bottom .media-placeholder {
+.slide.layout--media-description-below .media-placeholder {
   width: 100%;
   height: 420px;
   border-radius: 12px;
-  background: #4a4a4a;
+  background: $color-slide-placeholder;
+  order: 1;
 }
 
-.slide.layout--image-top-text-bottom .slide__content {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding: 64px;
-}
-
-.slide.layout--image-top-text-bottom .media-placeholder {
-  width: 100%;
-  height: 420px;
-  border-radius: 12px;
-  background: #4a4a4a;
-}
-
-.slide.layout--image-top-feature .slide__content {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding: 64px;
-}
-
-.slide.layout--image-top-feature .media-placeholder {
-  width: 100%;
-  height: 460px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #3a3a3a, #1f1f1f);
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-}
-
-.slide.layout--image-top-feature .points {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 24px;
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.slide.layout--image-bottom-feature .slide__content {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding: 64px;
-}
-
-.slide.layout--image-bottom-feature .points {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 24px;
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.slide.layout--image-bottom-feature .media-placeholder {
-  width: 100%;
-  height: 420px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #3a3a3a, #1f1f1f);
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-}
-
-.slide.layout--inline-stagger .slide__content,
-.slide.layout--inline-gallery .slide__content {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding: 64px;
-}
-
-.slide.layout--inline-stagger .points--inline-media,
-.slide.layout--inline-gallery .points--inline-media {
-  width: 100%;
+.slide.layout--media-description-below .points {
+  order: 2;
   margin-top: 0;
 }
 
-.slide.layout--inline-stagger .points--inline-media {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  grid-auto-flow: dense;
+/* Media + description above (text on top, image below) */
+.slide.layout--media-description-above .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 64px;
 }
 
-.slide.layout--inline-stagger .points--inline-media .point:nth-of-type(odd) {
-  grid-column: span 2;
+.slide.layout--media-description-above .points {
+  order: 1;
+  margin-bottom: 0;
 }
 
-.slide.layout--inline-gallery .points--inline-media {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+.slide.layout--media-description-above .media-placeholder {
+  width: 100%;
+  height: 420px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+  order: 2;
 }
 
-.slide.layout--inline-gallery .media-placeholder--inline {
-  min-height: 300px;
+/* 2 media with description */
+.slide.layout--two-media-description .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 64px;
 }
 
-.slide--dark.layout--image-top-feature .points,
-.slide--dark.layout--image-bottom-feature .points,
-.slide--dark.layout--inline-stagger .points,
-.slide--dark.layout--inline-gallery .points,
-.slide__canvas--dark.layout--image-top-feature .points,
-.slide__canvas--dark.layout--image-bottom-feature .points,
-.slide__canvas--dark.layout--inline-stagger .points,
-.slide__canvas--dark.layout--inline-gallery .points {
-  background: rgba(255, 255, 255, 0.05);
+.slide.layout--two-media-description .points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 1;
+  margin-bottom: 0;
 }
 
-/* Dark mode for media layouts */
-.slide--dark.layout--text-top-image-bottom .media-placeholder,
-.slide--dark.layout--image-top-text-bottom .media-placeholder,
-.slide--dark.layout--image-top-feature .media-placeholder,
-.slide--dark.layout--image-bottom-feature .media-placeholder,
-.slide__canvas--dark.layout--text-top-image-bottom .media-placeholder,
-.slide__canvas--dark.layout--image-top-text-bottom .media-placeholder,
-.slide__canvas--dark.layout--image-top-feature .media-placeholder,
-.slide__canvas--dark.layout--image-bottom-feature .media-placeholder {
+.slide.layout--two-media-description .media-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 2;
+  width: 100%;
+}
+
+.slide.layout--two-media-description .media-placeholder {
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+}
+
+/* Heading + 2 media with description below */
+.slide.layout--heading-two-media-description-below .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 64px;
+}
+
+.slide.layout--heading-two-media-description-below .heading {
+  order: 1;
+  margin-bottom: 0;
+}
+
+.slide.layout--heading-two-media-description-below .media-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 2;
+  width: 100%;
+}
+
+.slide.layout--heading-two-media-description-below .media-placeholder {
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+}
+
+.slide.layout--heading-two-media-description-below .points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 3;
+  margin-top: 0;
+}
+
+/* Heading + 2 media with description */
+.slide.layout--heading-two-media-description .slide__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 64px;
+}
+
+.slide.layout--heading-two-media-description .heading {
+  order: 1;
+  margin-bottom: 0;
+}
+
+.slide.layout--heading-two-media-description .media-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 2;
+  width: 100%;
+}
+
+.slide.layout--heading-two-media-description .media-placeholder {
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+}
+
+.slide.layout--heading-two-media-description .points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  order: 3;
+  margin-top: 0;
+  align-items: start;
+}
+
+/* Heading + 4 points with media left */
+.slide.layout--heading-four-points-media-left .slide__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  padding: 64px;
+  align-items: start;
+}
+
+.slide.layout--heading-four-points-media-left .heading {
+  grid-column: 1;
+  margin-bottom: 24px;
+}
+
+.slide.layout--heading-four-points-media-left .points {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 0;
+}
+
+.slide.layout--heading-four-points-media-left .media-placeholder {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+}
+
+/* Heading + description with media right */
+.slide.layout--heading-description-media-right .slide__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  padding: 64px;
+  align-items: start;
+}
+
+.slide.layout--heading-description-media-right .heading {
+  grid-column: 1;
+  margin-bottom: 24px;
+}
+
+.slide.layout--heading-description-media-right .points {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+}
+
+.slide.layout--heading-description-media-right .points .point {
+  margin: 0;
+}
+
+.slide.layout--heading-description-media-right .media-placeholder {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 12px;
+  background: $color-slide-placeholder;
+}
+
+/* Dark mode for image + text layouts */
+.slide--dark.layout--media-description-below .media-placeholder,
+.slide--dark.layout--media-description-above .media-placeholder,
+.slide--dark.layout--two-media-description .media-placeholder,
+.slide--dark.layout--heading-two-media-description-below .media-placeholder,
+.slide--dark.layout--heading-two-media-description .media-placeholder,
+.slide--dark.layout--heading-four-points-media-left .media-placeholder,
+.slide--dark.layout--heading-description-media-right .media-placeholder,
+.slide__canvas--dark.layout--media-description-below .media-placeholder,
+.slide__canvas--dark.layout--media-description-above .media-placeholder,
+.slide__canvas--dark.layout--two-media-description .media-placeholder,
+.slide__canvas--dark.layout--heading-two-media-description-below .media-placeholder,
+.slide__canvas--dark.layout--heading-two-media-description .media-placeholder,
+.slide__canvas--dark.layout--heading-four-points-media-left .media-placeholder,
+.slide__canvas--dark.layout--heading-description-media-right .media-placeholder {
   background: #2a2a2a;
   border: 1px solid $color-slide-dark-border;
 }

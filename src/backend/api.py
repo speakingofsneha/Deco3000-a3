@@ -1,3 +1,4 @@
+# fastapi web api for pdf to slides conversion
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -17,18 +18,18 @@ from .models import (
 )
 from .slide_generator import SlideGenerator
 
-# Configure logging
+# configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# initialize fastapi application
 app = FastAPI(
     title="PDF to Slide Deck API",
     description="Convert PDF documents to structured slide decks using AI",
     version="1.0.0"
 )
 
-# Add CORS middleware
+# add cors middleware to allow cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -137,11 +138,11 @@ class SCSSMiddleware(BaseHTTPMiddleware):
         
         return await call_next(request)
 
-# Initialize services
+# initialize processing services
 processing_service = PDFProcessingService()
 slide_generator = SlideGenerator()
 
-# Create necessary directories
+# create directories for uploads and outputs
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
@@ -160,14 +161,16 @@ app.add_middleware(NoCacheMiddleware)
 # API ROUTES - Must be defined BEFORE static file mounts
 # ============================================================================
 
+# endpoint to upload pdf files
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
     """Upload a PDF file"""
     try:
+        # validate file is pdf
         if not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="File must be a PDF")
         
-        # Save uploaded file
+        # save uploaded file to uploads directory
         file_path = f"uploads/{file.filename}"
         with open(file_path, "wb") as buffer:
             content = await file.read()
@@ -186,6 +189,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         logger.error(f"Error uploading file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+# endpoint to generate outline and narrative without creating slides
 @app.post("/generate-outline")
 async def generate_outline(
     pdf_path: str = Form(...),
@@ -195,9 +199,11 @@ async def generate_outline(
 ):
     """Generate outline and content without creating slides"""
     try:
+        # validate pdf exists
         if not os.path.exists(pdf_path):
             raise HTTPException(status_code=404, detail="PDF file not found")
         
+        # create processing request
         request = PDFProcessingRequest(
             pdf_path=pdf_path,
             max_chunks=max_chunks,
@@ -205,10 +211,11 @@ async def generate_outline(
             overlap=overlap
         )
         
+        # generate outline and narrative
         response = processing_service.generate_outline_and_content(request)
         
         if response.success:
-            # Use model_dump() for Pydantic v2 or dict() for v1
+            # return response as dict
             try:
                 return response.model_dump()
             except AttributeError:
@@ -325,6 +332,7 @@ async def generate_slides_from_outline(
         logger.error(f"Error generating slides: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
 
+# endpoint to process pdf and generate complete slide deck
 @app.post("/process")
 async def process_pdf(
     pdf_path: str = Form(...),
@@ -334,11 +342,11 @@ async def process_pdf(
 ):
     """Process a PDF file and generate slide deck"""
     try:
-        # Check if file exists
+        # validate pdf exists
         if not os.path.exists(pdf_path):
             raise HTTPException(status_code=404, detail="PDF file not found")
         
-        # Create processing request
+        # create processing request
         request = PDFProcessingRequest(
             pdf_path=pdf_path,
             max_chunks=max_chunks,
@@ -346,7 +354,7 @@ async def process_pdf(
             overlap=overlap
         )
         
-        # Process PDF
+        # run full processing pipeline
         response = processing_service.process_pdf(request)
         
         if response.success:

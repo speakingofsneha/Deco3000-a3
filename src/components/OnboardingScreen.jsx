@@ -1,4 +1,6 @@
+// onboarding screen with typing animation
 const OnboardingScreen = ({ onComplete }) => {
+  // define the two scenes with their text and timing
   const scenes = React.useMemo(
     () => [
       {
@@ -19,7 +21,7 @@ const OnboardingScreen = ({ onComplete }) => {
         image: '/churchill/hapi.png',
         alt: 'Sir Winston Churchill smiling and raising two fingers',
         paragraphs: [
-          'Don’t have weeks to turn your 70-page visual report into a case study?',
+          'Don\'t have weeks to turn your 70-page visual report into a case study?',
           'Try Reframe'
         ],
         hasCta: true,
@@ -40,6 +42,7 @@ const OnboardingScreen = ({ onComplete }) => {
 
   const scene = scenes[sceneIndex];
 
+  // reset state when scene changes
   React.useEffect(() => {
     setDisplayedParagraphs(scene.paragraphs.map(() => ''));
     setParagraphIndex(0);
@@ -47,6 +50,7 @@ const OnboardingScreen = ({ onComplete }) => {
     setIsSceneFinished(false);
   }, [sceneIndex, scene.paragraphs]);
 
+  // handle the typing animation character by character
   React.useEffect(() => {
     const currentScene = scenes[sceneIndex];
     const paragraphs = currentScene.paragraphs;
@@ -59,6 +63,7 @@ const OnboardingScreen = ({ onComplete }) => {
     setIsSceneFinished(false);
     const currentParagraph = paragraphs[paragraphIndex];
 
+    // type out one more character
     if (charIndex < currentParagraph.length) {
       const timeout = setTimeout(() => {
         setDisplayedParagraphs((prev) => {
@@ -72,6 +77,7 @@ const OnboardingScreen = ({ onComplete }) => {
       return () => clearTimeout(timeout);
     }
 
+    // pause between paragraphs
     const pauseTimeout = setTimeout(() => {
       setParagraphIndex((value) => value + 1);
       setCharIndex(0);
@@ -80,6 +86,7 @@ const OnboardingScreen = ({ onComplete }) => {
     return () => clearTimeout(pauseTimeout);
   }, [charIndex, paragraphIndex, sceneIndex, scenes]);
 
+  // auto-advance to next scene after hold duration
   React.useEffect(() => {
     const currentScene = scenes[sceneIndex];
     if (!isSceneFinished || !currentScene.autoAdvance) {
@@ -97,12 +104,14 @@ const OnboardingScreen = ({ onComplete }) => {
     return () => clearTimeout(holdTimeout);
   }, [isSceneFinished, sceneIndex, scenes]);
 
+  // handle cta button click
   const handleCta = () => {
     if (typeof onComplete === 'function') {
       onComplete();
     }
   };
 
+  // render each line with typing caret or cta button
   const renderLine = (text, idx) => {
     const isActive = paragraphIndex === idx && !isSceneFinished;
     const showCaret =
@@ -110,6 +119,7 @@ const OnboardingScreen = ({ onComplete }) => {
       charIndex < (scene.paragraphs[idx]?.length || 0) &&
       !(scene.hasCta && idx === scene.paragraphs.length - 1);
 
+    // last paragraph becomes a clickable cta button
     if (scene.hasCta && idx === scene.paragraphs.length - 1) {
       const isCtaActive = text.length > 0 || isSceneFinished;
       return (
@@ -135,6 +145,7 @@ const OnboardingScreen = ({ onComplete }) => {
       );
     }
 
+    // regular paragraph with typing caret
     return (
       <p
         key={`${scene.id}-${idx}`}
@@ -149,9 +160,11 @@ const OnboardingScreen = ({ onComplete }) => {
   return (
     <div className="onboarding-screen">
       <div key={scene.id} className="onboarding-frame onboarding-frame--animated">
+        {/* churchill image for current scene */}
         <div className="onboarding-image-wrap">
           <img src={scene.image} alt={scene.alt} className="onboarding-image" />
         </div>
+        {/* text area with typing animation */}
         <div className="onboarding-text">
           {displayedParagraphs.map((line, idx) => renderLine(line, idx))}
         </div>

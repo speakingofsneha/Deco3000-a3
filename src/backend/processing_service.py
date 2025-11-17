@@ -1,3 +1,5 @@
+# sorry in advance for the mess, first time writing backend code so pls bear with me
+# main service that orchestrates the pdf to slides pipeline
 import os
 import shutil
 import time
@@ -18,8 +20,9 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
-# pdf processing service orchestrates parsing, vectorizing, outlining, narrative creation, and slide building
+# orchestrates parsing, vectorizing, outlining, narrative creation, and slide building
 class PDFProcessingService:
+    # initialize all services and create output directories
     def __init__(self):
         self.pdf_parser = PDFParser()
         self.chunking_service = ChunkingEmbeddingService()
@@ -27,23 +30,23 @@ class PDFProcessingService:
         self.rag_system = RAGSystem()
         self.slide_generator = SlideGenerator()
         
-        # Create output directories
+        # create directories for outputs
         self.output_dir = Path("outputs")
         self.output_dir.mkdir(exist_ok=True)
         
         self.vector_store_dir = Path("faiss_index")
         self.vector_store_dir.mkdir(exist_ok=True)
     
+    # main pipeline: parse pdf, create embeddings, generate outline, create bullets, build slides
     def process_pdf(self, request: PDFProcessingRequest) -> PDFProcessingResponse:
         """Main processing pipeline"""
         start_time = time.time()
         
         try:
-            # parse and prepare pdf structure so all later steps know the title and sections
             logger.info(f"Starting PDF processing: {request.pdf_path}")
             logger.info("="*60)
             
-            # Step 1: Parse PDF
+            # step 1: parse pdf to extract text and structure
             logger.info("Step 1: Parsing PDF...")
             pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
             pdf_metadata = self.pdf_parser.extract_metadata(request.pdf_path)
@@ -52,13 +55,12 @@ class PDFProcessingService:
             logger.info(f"  ✓ Sections found: {len(pdf_structure.sections)}")
             logger.info(f"  ✓ Total pages: {pdf_structure.total_pages}")
             
-            # Step 2: Chunk and embed
-            # large chunks plus overlap give enough context for summarisation without exploding count
+            # step 2: split text into chunks and create vector embeddings
             logger.info("\nStep 2: Chunking and embedding...")
             
-            # Use optimized chunk settings - larger chunks, fewer per page
-            chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
-            overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
+            # use optimized chunk settings
+            chunk_size = min(request.chunk_size, 2000)
+            overlap = max(request.overlap, 200)
             
             logger.info(f"  Using chunk_size={chunk_size}, overlap={overlap}")
             
@@ -70,15 +72,16 @@ class PDFProcessingService:
             
             logger.info(f"  ✓ Created {len(chunks)} chunks")
             
+            # limit chunks if too many
             if len(chunks) > request.max_chunks:
                 chunks = chunks[:request.max_chunks]
                 logger.warning(f"  ! Limited to {request.max_chunks} chunks")
             
+            # create vector embeddings for semantic search
             vector_store = self.chunking_service.create_embeddings(chunks)
             logger.info(f"  ✓ Created vector store")
             
-            # Step 3: Generate outline
-            # outline gives a high-level structure before long-form narrative
+            # step 3: generate outline structure from content
             logger.info("\nStep 3: Generating outline...")
             outline_items = self.outline_generator.generate_outline(
                 pdf_structure.title, 
@@ -88,8 +91,7 @@ class PDFProcessingService:
             
             logger.info(f"  ✓ Created {len(outline_items)} sections")
             
-            # Step 4: Generate bullets with RAG
-            # bullets capture detailed evidence for each section
+            # step 4: generate bullet points using rag
             logger.info("\nStep 4: Generating bullets...")
             self.rag_system.chunking_service = self.chunking_service
             bullets_data = self.rag_system.generate_comprehensive_bullets(
@@ -102,8 +104,7 @@ class PDFProcessingService:
             total_bullets = sum(len(bullets) for bullets in bullets_data.values())
             logger.info(f"  ✓ Generated {total_bullets} total bullets")
             
-            # Step 5: Generate slide deck
-            # convert structured outline + bullets into presentation-ready data
+            # step 5: create slide deck from outline and bullets
             logger.info("\nStep 5: Generating slide deck...")
             slide_deck = self.slide_generator.generate_slide_deck(
                 pdf_structure.title,
@@ -115,7 +116,7 @@ class PDFProcessingService:
             
             logger.info(f"  ✓ Created {len(slide_deck.slides)} slides")
             
-            # Save outputs
+            # save outputs to disk
             self._save_outputs(slide_deck, vector_store, request.pdf_path)
             
             processing_time = time.time() - start_time
@@ -143,16 +144,17 @@ class PDFProcessingService:
                 processing_time=processing_time
             )
     
+    # save slide deck and vector store to disk
     def _save_outputs(self, slide_deck: SlideDeck, vector_store, pdf_path: str):
         """Save processing outputs"""
         pdf_name = Path(pdf_path).stem
         
-        # Save slide deck JSON as <name>.json
+        # save slide deck as json file
         json_path = self.output_dir / f"{pdf_name}.json"
         self.slide_generator.export_to_json(slide_deck, str(json_path))
         logger.info(f"\n  ✓ Saved: {json_path}")
         
-        # Update latest.json pointer for the viewer default
+        # create latest.json pointer for easy access
         try:
             latest_path = self.output_dir / "latest.json"
             shutil.copyfile(str(json_path), str(latest_path))
@@ -160,7 +162,7 @@ class PDFProcessingService:
         except Exception as e:
             logger.warning(f"  ! Could not update latest.json: {e}")
         
-        # Save vector store
+        # save vector store for later use
         vector_store_path = self.vector_store_dir / pdf_name
         self.chunking_service.save_vector_store(str(vector_store_path))
         logger.info(f"  ✓ Saved: {vector_store_path}")
@@ -196,10 +198,10 @@ class PDFProcessingService:
         try:
             logger.info(f"Generating outline and content: {request.pdf_path}")
             
-            # Step 1: Parse PDF
+            # step 1: parse pdf
             pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
             
-            # Step 2: Chunk and embed
+            # step 2: chunk and embed
             # reuse the same chunking strategy used in full processing
             chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
             overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
@@ -215,8 +217,8 @@ class PDFProcessingService:
             
             vector_store = self.chunking_service.create_embeddings(chunks)
             
-            # Step 3: Generate initial narrative plan first (without needing an outline)
-            # This will be a structured narrative that the user can edit
+            # step 3: generate initial narrative plan first (without needing an outline)
+            # this will be a structured narrative that the user can edit
             narrative_plan = self._generate_narrative_plan(
                 None,  # No outline needed - generate from PDF content directly
                 pdf_structure.title,
@@ -224,13 +226,13 @@ class PDFProcessingService:
                 chunks
             )
             
-            # Step 4: Generate outline FROM the narrative
+            # step 4: generate outline from the narrative
             outline_items = self.outline_generator.generate_outline_from_narrative(
                 narrative_plan,
                 pdf_structure.title
             )
             
-            # Save vector store for later use (will be used when generating bullets)
+            # save vector store for later use (will be used when generating bullets)
             pdf_name = Path(request.pdf_path).stem
             vector_store_path = self.vector_store_dir / pdf_name
             self.chunking_service.save_vector_store(str(vector_store_path))
@@ -243,7 +245,7 @@ class PDFProcessingService:
                 pdf_title=pdf_structure.title,
                 outline=outline_items,
                 narrative_plan=narrative_plan,
-                bullets_data={},  # Will be generated after user edits narrative
+                bullets_data={},  # will be generated after user edits narrative
                 processing_time=processing_time
             )
             
@@ -263,7 +265,7 @@ class PDFProcessingService:
         """Generate a compelling storytelling narrative plan from PDF content"""
         llm_service = get_llm_service()
         
-        # Build outline summary if outline_items provided, otherwise skip
+        # build outline summary if outline_items provided, otherwise skip
         outline_summary = ""
         if outline_items:
             outline_summary = "\n".join([
@@ -271,33 +273,33 @@ class PDFProcessingService:
                 for idx, item in enumerate(outline_items)
             ])
         
-        # Set vector store temporarily for searching
+        # set vector store temporarily for searching
         original_vector_store = self.chunking_service.vector_store
         self.chunking_service.vector_store = vector_store
         
         try:
-            # Get relevant chunks for narrative generation using a broad query
+            # get relevant chunks for narrative generation using a broad query
             query = f"{pdf_title} case study user research design process problem solution"
             similar_chunks_results = self.chunking_service.search_similar_chunks(query, top_k=10)
             
-            # Prepare context from chunks - clean and filter
+            # prepare context from chunks - clean and filter
             context_parts = []
             for chunk_tuple in similar_chunks_results:
-                # Extract chunk from tuple (chunk, score)
+                # extract chunk from tuple (chunk, score)
                 chunk = chunk_tuple[0] if isinstance(chunk_tuple, tuple) else chunk_tuple
                 
-                # Extract text from Chunk model
+                # extract text from Chunk model
                 chunk_text = chunk.text if hasattr(chunk, 'text') else str(chunk)
                 
-                # Remove page numbers, random numbers, and incomplete sentences
+                # remove page numbers, random numbers, and incomplete sentences
                 chunk_text = self._clean_chunk_text(chunk_text)
-                if chunk_text and len(chunk_text.strip()) > 50:  # Only use substantial chunks
+                if chunk_text and len(chunk_text.strip()) > 50:  # only use substantial chunks
                     context_parts.append(chunk_text)
             
-            source_context = "\n\n".join(context_parts[:10])  # Use top 10 chunks
+            source_context = "\n\n".join(context_parts[:10])  # use top 10 chunks
             
             if not source_context or len(source_context.strip()) < 100:
-                # Fallback: use chunks directly if search didn't work
+                # fallback: use chunks directly if search didn't work
                 logger.warning("Search didn't return enough context, using chunks directly")
                 context_parts = []
                 for chunk in chunks[:12]:
@@ -307,10 +309,10 @@ class PDFProcessingService:
                         context_parts.append(chunk_text)
                 source_context = "\n\n".join(context_parts[:10])
         finally:
-            # Restore original vector store
+            # restore original vector store
             self.chunking_service.vector_store = original_vector_store
         
-        # Build prompt based on whether we have an outline or not
+        # build prompt based on whether we have an outline or not
         if outline_summary:
             outline_section = f"""
 OUTLINE SECTIONS:
@@ -342,15 +344,15 @@ CRITICAL REQUIREMENTS - READ CAREFULLY:
 10. DO NOT copy text verbatim - synthesize and rewrite in a narrative style
 11. Connect each section naturally to create a cohesive story
 12. WRITE IN FIRST PERSON - Write as the designer themselves (use "I", "we", "my", "our")
-13. WRITE IN A CLEAR, CONVERSATIONAL, AND COMPELLING STYLE - Write like a student telling their story. Use simple, direct language. Avoid convoluted or overly complex sentences. Be engaging and natural, not academic or formal. Write as if you're explaining your project to a friend or colleague.
+13. WRITE IN SIMPLE, CLEAR, HUMAN LANGUAGE - Write like a student telling their story. Use simple, direct language. Avoid convoluted or overly complex sentences. Be engaging and natural, not academic or formal. Write as if you're explaining your project to a friend or colleague. Use short sentences. Avoid jargon, complex words, or academic phrasing. Keep it straightforward and easy to understand.
 14. BE SPECIFIC AND PRECISE - Extract exact details from the source material. DO NOT use vague statements like "lacked an engaging experience" or "addressed the issue". Instead, state SPECIFIC problems, SPECIFIC findings, SPECIFIC methods, SPECIFIC numbers/statistics if mentioned
 15. For research sections, provide DETAILED information: exact method names, number of participants, specific findings, exact quotes or insights mentioned, specific analysis methods used
 16. Answer every question in each section PRECISELY with information from the source material - do not leave any question unanswered or give vague answers
-17. Keep sentences clear and concise - avoid unnecessary complexity or jargon
+17. Keep sentences clear and concise - avoid unnecessary complexity or jargon. Use simple words and short sentences.
 18. TOTAL WORD COUNT MUST BE BETWEEN 500 AND 700 WORDS (target ~600). HARD LIMIT: DO NOT EXCEED 700 WORDS.
-19. DO NOT mention appendices, appendixes, supplementary materials, or reference any “see appendix” notes—keep everything self-contained in the narrative.
-20. DO NOT add closing notes like “Note: this narrative…” or any other meta explanation—end after the final section content.
-21. Use clear, concise, conversational language that sounds natural and human—avoid robotic phrasing or generic filler.
+19. CRITICAL: DO NOT mention appendices, appendixes, appendix references, "see appendix", "refer to appendix", "appendix X", or any supplementary materials—keep everything self-contained in the narrative. If you see any mention of appendices in the source material, ignore it completely and do not reference it in any way.
+20. DO NOT add closing notes like "Note: this narrative…" or any other meta explanation—end after the final section content.
+21. Use simple, clear, human language - write like you're talking to a friend. Avoid complex words, jargon, or academic phrasing. Keep sentences short and straightforward. Sound natural and conversational, not robotic or formal.
 22. Be laser-specific about problems, users, methods, and outcomes. No vague statements or placeholder text.
 
 STRUCTURE YOUR NARRATIVE EXACTLY AS FOLLOWS (USE THESE MARKDOWN HEADINGS VERBATIM):
@@ -426,14 +428,14 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
             
             if response and response.strip():
                 narrative = response.strip()
-                # Clean the narrative to remove any remaining issues
+                # clean the narrative to remove any remaining issues
                 narrative = self._clean_narrative(narrative)
                 
-                # Validate that the narrative is based on actual content
+                # validate that the narrative is based on actual content
                 narrative_lower = narrative.lower()
                 source_lower = source_context.lower()
                 
-                # Check for common hallucination patterns
+                # check for common hallucination patterns
                 hallucination_patterns = [
                     "busy single parent",
                     "manage their finances",
@@ -442,19 +444,19 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                     "financial management"
                 ]
                 
-                # Check if narrative contains hallucinated content
+                # check if narrative contains hallucinated content
                 has_hallucination = any(pattern in narrative_lower for pattern in hallucination_patterns)
                 
-                # Check if narrative references actual content from source
-                # Extract key terms from source (first 500 chars)
+                # check if narrative references actual content from source
+                # extract key terms from source (first 500 chars)
                 source_key_terms = set(source_lower[:500].split())
                 narrative_terms = set(narrative_lower.split())
                 overlap = len(source_key_terms.intersection(narrative_terms))
                 
-                # If narrative has hallucination patterns and low overlap with source, regenerate
+                # if narrative has hallucination patterns and low overlap with source, regenerate
                 if has_hallucination and overlap < 5:
                     logger.warning(f"Narrative contains hallucinated content. Overlap with source: {overlap}. Regenerating...")
-                    # Try once more with stronger emphasis
+                    # try once more with stronger emphasis
                     retry_prompt = prompt + "\n\nCRITICAL REMINDER: The examples in the structure above are JUST examples of style, NOT content to copy. You MUST use ONLY the actual content from the source material provided. If the source material is about Carnatic music, write about Carnatic music. If it's about a different domain, use that domain. DO NOT use the example scenarios. REMEMBER: Write in FIRST PERSON (I, we, my, our). Be SPECIFIC and PRECISE - extract exact details, numbers, participant counts, specific findings, exact method names. DO NOT use vague statements."
                     retry_messages = [
                         {
@@ -473,7 +475,7 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                         narrative = self._clean_narrative(narrative)
                         narrative = self._deduplicate_paragraphs(narrative)
                 
-                # Validate that the narrative is complete (has key sections)
+                # validate that the narrative is complete (has key sections)
                 sections = ["Title of your project", "brief description", "Team and your role", "Setting the context", "What's the problem", "Research themes", "Problem statement", "Assumptions", "Design goals", "Ideation", "Design process", "final outcome", "What didn't go as planned"]
                 has_structure = any(section.lower() in narrative.lower() for section in sections)
                 
@@ -484,12 +486,12 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
                 narrative = self._deduplicate_paragraphs(narrative)
                 return narrative
             else:
-                # Fallback to simple structure if LLM fails
+                # fallback to simple structure if LLM fails
                 return self._generate_fallback_narrative(outline_items, pdf_title, source_context)
                 
         except Exception as e:
             logger.error(f"Error generating narrative plan: {str(e)}")
-            # Fallback to simple structure
+            # fallback to simple structure
             return self._generate_fallback_narrative(outline_items, pdf_title, source_context)
     
     def _clean_chunk_text(self, text: str) -> str:
@@ -507,17 +509,20 @@ Now write the complete narrative following this structure, using EXCLUSIVELY the
     def _clean_narrative(self, narrative: str) -> str:
         """Clean the generated narrative to remove any issues"""
         import re
+        # remove any mentions of appendices
+        narrative = re.sub(r'\b(appendix|appendices|appendixes|see appendix|refer to appendix|appendix \d+|appendix [a-z])\b', '', narrative, flags=re.IGNORECASE)
+        narrative = re.sub(r'\b(supplementary materials?|see supplementary|refer to supplementary)\b', '', narrative, flags=re.IGNORECASE)
         # remove leftover numbering and tidy punctuation so editors see readable text
         narrative = re.sub(r'\b\d+-\d+\b', '', narrative)
         narrative = re.sub(r'\b\d{1,2}\s*=\s*\d+', '', narrative)
-        # Fix incomplete sentences ending with "...."
+        # fix incomplete sentences ending with "...."
         narrative = re.sub(r'\.{3,}\s*', '. ', narrative)
-        # Remove sentences that are just methodology names
+        # remove sentences that are just methodology names
         lines = narrative.split('\n')
         cleaned_lines = []
         for line in lines:
             line = line.strip()
-            if line and len(line) > 20:  # Only keep substantial lines
+            if line and len(line) > 20:  # only keep substantial lines
                 cleaned_lines.append(line)
         return '\n\n'.join(cleaned_lines)
     
@@ -594,14 +599,14 @@ I reflected on trade-offs and lessons mentioned in the PDF, highlighting how the
             vector_store_path = self.vector_store_dir / pdf_name
             
             if vector_store_path.with_suffix(".index").exists():
-                # Load existing vector store
+                # load existing vector store
                 vector_store = self.chunking_service.load_vector_store(str(vector_store_path))
             else:
-                # Recreate vector store
+                # recreate vector store
                 # if regenerate is called after edits, we may not have stored vectors yet
                 pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
-                chunk_size = min(request.chunk_size, 2000)  # Allow larger chunks
-                overlap = max(request.overlap, 200)  # Reduced overlap for fewer chunks
+                chunk_size = min(request.chunk_size, 2000)  # allow larger chunks
+                overlap = max(request.overlap, 200)  # reduced overlap for fewer chunks
                 chunks = self.chunking_service.chunk_text(pdf_structure, chunk_size, overlap)
                 if len(chunks) > request.max_chunks:
                     chunks = chunks[:request.max_chunks]
@@ -618,21 +623,24 @@ I reflected on trade-offs and lessons mentioned in the PDF, highlighting how the
             else:
                 outline_items = request.outline
             
-            # Set narrative and tone in RAG system
+            # set narrative and tone in rag system
             self.rag_system.chunking_service = self.chunking_service
             self.rag_system.narrative = request.narrative
             self.rag_system.tone = request.tone
             self.rag_system.all_seen_bullets = []  # Reset for regeneration
             
             # regenerate bullets with new parameters using the regenerated outline
+            case_study_start_time = time.time()
             bullets_data = self.rag_system.generate_comprehensive_bullets(
                 outline_items, 
                 vector_store,
                 top_k=12,
-                max_bullets_per_item=12
+                max_bullets_per_item=2
             )
+            case_study_time = time.time() - case_study_start_time
+            logger.info(f"✓ Case study generated in {case_study_time:.2f} seconds ({case_study_time/60:.2f} minutes)")
             
-            # Get PDF title
+            # get PDF title
             pdf_structure = self.pdf_parser.extract_text_and_structure(request.pdf_path)
             
             processing_time = time.time() - start_time

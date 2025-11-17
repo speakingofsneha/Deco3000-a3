@@ -1,10 +1,11 @@
-// Upload Screen Component
+// upload screen component
 const UploadScreen = ({ onFileSelected, onReframe }) => {
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [error, setError] = React.useState('');
   const fileInputRef = React.useRef(null);
   const uploadAreaRef = React.useRef(null);
 
+  // validate and set selected file
   const handleFileSelection = (file) => {
     if (file.type !== 'application/pdf') {
       setError('Please select a PDF file');
@@ -15,11 +16,13 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
     onFileSelected(file);
   };
 
+  // handle file input change
   const handleFileInput = (e) => {
     const file = e.target.files[0];
     if (file) handleFileSelection(file);
   };
 
+  // drag and drop handlers
   const handleDragOver = (e) => {
     e.preventDefault();
     uploadAreaRef.current?.classList.add('dragover');
@@ -43,6 +46,7 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
     }
   };
 
+  // trigger file input when upload area is clicked
   const handleClick = () => {
     fileInputRef.current?.click();
   };
@@ -51,9 +55,9 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
     <div className="upload-screen">
       <main className="upload-content">
         <h1 className="upload-title">Upload your visual report</h1>
-        <p className="upload-subtitle">We’ll turn it into an engaging case study ;)</p>
         
         <div className="upload-card">
+          {/* drag and drop area */}
           <div 
             className="upload-area"
             ref={uploadAreaRef}
@@ -79,6 +83,7 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
             />
           </div>
 
+          {/* show selected file info */}
           {selectedFile && (
             <div className="upload-list">
               <div className="upload-item">
@@ -87,6 +92,7 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
                   <p className="upload-item-name">{selectedFile.name}</p>
                   <p className="upload-item-size">{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</p>
                 </div>
+                {/* remove file button */}
                 <button 
                   className="upload-item-remove"
                   onClick={(e) => {
@@ -108,6 +114,7 @@ const UploadScreen = ({ onFileSelected, onReframe }) => {
           {error && <div className="error-message">{error}</div>}
         </div>
         
+        {/* continue button, disabled until file is selected */}
         <button 
           className="upload-button primary" 
           onClick={onReframe}

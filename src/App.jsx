@@ -5,7 +5,9 @@ const API_BASE_URL = '';
 
 // Main App Component
 const App = () => {
-  const [screen, setScreen] = useState('onboarding');
+  // Check if onboarding has been shown in this session
+  const hasSeenOnboarding = sessionStorage.getItem('onboardingShown') === 'true';
+  const [screen, setScreen] = useState(hasSeenOnboarding ? 'upload' : 'onboarding');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -25,15 +27,17 @@ const App = () => {
   const [currentNarrative, setCurrentNarrative] = useState(null);
   const [slideDeck, setSlideDeck] = useState(null);
   const [pdfTitle, setPdfTitle] = useState('');
-
+  
   const navigate = useCallback((newScreen, data = {}) => {
     setScreen(newScreen);
     if (data.caseStudy) {
       loadCaseStudyFromHistory(data.caseStudy);
     }
   }, []);
-
+  
   const handleOnboardingComplete = useCallback(() => {
+    // Mark onboarding as shown in this session
+    sessionStorage.setItem('onboardingShown', 'true');
     setScreen('upload');
   }, []);
 
@@ -238,7 +242,7 @@ const App = () => {
 
   return (
     <>
-      {!isOnboarding && (
+      {!isOnboarding && screen !== 'deck' && (
         <>
           <HamburgerMenu 
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -252,6 +256,15 @@ const App = () => {
             currentScreen={screen}
           />
         </>
+      )}
+      
+      {!isOnboarding && screen === 'deck' && (
+        <Sidebar 
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onNavigate={navigate}
+          currentScreen={screen}
+        />
       )}
 
       {loading && <LoadingScreen title={loadingTitle} message={loadingMessage} />}
@@ -275,9 +288,11 @@ const App = () => {
       )}
       
       {!loading && screen === 'deck' && (
-        <DeckScreen 
+        <DeckScreen
           slideDeck={slideDeck}
           pdfTitle={pdfTitle}
+          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          isMenuOpen={sidebarOpen}
         />
       )}
     </>

@@ -63,31 +63,7 @@ function groupSlidesByTitle(slides) {
 function renderSlideContent(contentItems, isMediaSlide, metadata = {}) {
   if (!contentItems || contentItems.length === 0) return '';
   
-  const inlineMedia = Boolean(metadata.inline_media);
-  const mediaBreakpoints = Array.isArray(metadata.media_breakpoints)
-    ? metadata.media_breakpoints
-        .map((value) => Number(value))
-        .filter((value) => Number.isFinite(value) && value > 0)
-    : [];
-
-  if (inlineMedia) {
-    let html = '<div class="points points--inline-media">';
-    contentItems.forEach((b, idx) => {
-      html += `<p class="point body">${escapeHtml(b.text || '')}</p>`;
-      const breakpointIndex = idx + 1;
-      if (mediaBreakpoints.includes(breakpointIndex)) {
-        html += '<div class="media-placeholder media-placeholder--inline" aria-hidden="true"></div>';
-      }
-    });
-    html += '</div>';
-    return html;
-  }
-
-  if (isMediaSlide) {
-    const descriptionText = contentItems.map(b => b.text || '').join(' ');
-    return `<p class="body media-description">${escapeHtml(descriptionText)}</p>`;
-  }
-  
+  // All layouts render as points
   return `<div class="points">${contentItems.map(b => `<p class="point body">${escapeHtml(b.text || '')}</p>`).join('')}</div>`;
 }
 
@@ -128,55 +104,107 @@ function renderSlideDeck(slideDeck) {
       
       // Determine layout class based on metadata
       const layoutClassMap = {
-        'text-top-image-bottom': ' layout--text-top-image-bottom',
-        'image-top-text-bottom': ' layout--image-top-text-bottom',
-        'image-top-feature': ' layout--image-top-feature',
-        'image-bottom-feature': ' layout--image-bottom-feature',
-        'inline-stagger': ' layout--inline-stagger',
-        'inline-gallery': ' layout--inline-gallery',
+        // Image + Text layouts
+        'media-description-below': ' layout--media-description-below',
+        'media-description-above': ' layout--media-description-above',
+        'two-media-description': ' layout--two-media-description',
+        'heading-two-media-description-below': ' layout--heading-two-media-description-below',
+        'heading-two-media-description': ' layout--heading-two-media-description',
+        'heading-four-points-media-left': ' layout--heading-four-points-media-left',
+        'heading-description-media-right': ' layout--heading-description-media-right',
+        // Text only layouts
+        'key-statement': ' layout--key-statement',
+        'two-col-description': ' layout--two-col-description',
+        'three-points': ' layout--three-points',
+        'three-points-list': ' layout--three-points-list',
+        'four-points': ' layout--four-points',
+        'four-points-grid': ' layout--four-points-grid',
+        'four-points-grid-below': ' layout--four-points-grid-below',
+        'six-points': ' layout--six-points',
+        // Special layouts
         'problem-statement': ' layout--problem-statement'
       };
       
       let layoutClass = '';
       if (layoutClassMap[layout]) {
         layoutClass = layoutClassMap[layout];
-      } else if (hasMedia) {
-        layoutClass = ' layout--media-above';
       }
       
       section.className += layoutClass;
       
+      // Render media based on layout
       let mediaHtml = '';
-      if (hasMedia && !inlineMedia) {
+      if (hasMedia) {
         const slots = Math.max(1, slide.metadata?.media_slots || 1);
-        mediaHtml = Array.from({ length: slots })
-          .map(() => '<div class="media-placeholder" aria-hidden="true"></div>')
-          .join('');
+        
+        // For two-media layouts, wrap in container
+        if (layout === 'two-media-description' || layout === 'heading-two-media-description-below' || layout === 'heading-two-media-description') {
+          const mediaPlaceholders = Array.from({ length: slots })
+            .map(() => '<div class="media-placeholder" aria-hidden="true"></div>')
+            .join('');
+          mediaHtml = `<div class="media-container">${mediaPlaceholders}</div>`;
+        } else {
+          // Single media placeholder
+          mediaHtml = Array.from({ length: slots })
+            .map(() => '<div class="media-placeholder" aria-hidden="true"></div>')
+            .join('');
+        }
       }
       
-      // For two-column layouts, render as points (not media-description)
-      const twoColumnLayouts = new Set([
-        'text-top-image-bottom',
-        'image-top-text-bottom',
-        'image-top-feature',
-        'image-bottom-feature',
-        'inline-stagger',
-        'inline-gallery',
-        'problem-statement'
-      ]);
-      const shouldRenderAsPoints = (hasMedia && twoColumnLayouts.has(layout)) || inlineMedia;
-      const renderAsMediaSlide = isMediaSlide && !shouldRenderAsPoints;
+      // For side-by-side layouts, render media and content in correct order
+      let contentOrder = '';
+      if (layout === 'heading-four-points-media-left' || layout === 'heading-description-media-right') {
+        // Media is rendered separately, content goes first
+        contentOrder = 'content-first';
+      }
       
+      // All layouts render as points (not media-description)
+      const renderAsMediaSlide = false;
+      
+      // For grid-below and six-points layouts, extract intro text from first 1-2 bullets
+      let introTextHtml = '';
+      let contentToRender = slide.content || [];
+      
+      if (layout === 'four-points-grid-below' || layout === 'six-points') {
+        // Use first 1-2 bullets as intro text, rest as grid items
+        const introBullets = contentToRender.slice(0, Math.min(2, contentToRender.length));
+        const gridBullets = contentToRender.slice(introBullets.length);
+        
+        if (introBullets.length > 0) {
+          introTextHtml = `<div class="intro-text">${introBullets.map(b => `<p>${escapeHtml(b.text || '')}</p>`).join('')}</div>`;
+        }
+        contentToRender = gridBullets;
+      }
+      
+      // For side-by-side layouts, order content and media differently
+      let contentHtml = renderSlideContent(contentToRender, renderAsMediaSlide, slide.metadata || {});
+      
+      if (layout === 'heading-four-points-media-left' || layout === 'heading-description-media-right') {
+        // Content (heading + points) on left, media on right
       section.innerHTML = `
         <div class="slide__canvas slide__canvas--${savedTheme}">
           <div class="slide__content">
             <div class="overline">${idx + 1} / ${totalSlides}</div>
             <h1 class="heading">${escapeHtml(slide.title || '')}</h1>
+              ${contentHtml}
             ${mediaHtml}
-            ${renderSlideContent(slide.content, renderAsMediaSlide, slide.metadata || {})}
+            </div>
+          </div>
+        `;
+      } else {
+        // Standard order: heading, intro text, media, content
+        section.innerHTML = `
+          <div class="slide__canvas slide__canvas--${savedTheme}">
+            <div class="slide__content">
+              <div class="overline">${idx + 1} / ${totalSlides}</div>
+              <h1 class="heading">${escapeHtml(slide.title || '')}</h1>
+              ${introTextHtml}
+              ${mediaHtml}
+              ${contentHtml}
           </div>
         </div>
       `;
+      }
     }
     deckEl.appendChild(section);
   });

@@ -1,3 +1,4 @@
+# command line interface for pdf to slides conversion
 import typer
 import os
 import json
@@ -13,20 +14,21 @@ from .processing_service import PDFProcessingService
 from .models import PDFProcessingRequest
 from .slide_generator import SlideGenerator
 
-# Configure logging
+# configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Typer app
+# initialize typer cli application
 app = typer.Typer(
     name="pdf-to-slides",
     help="Convert PDF documents to structured slide decks using AI",
     add_completion=False
 )
 
-# Initialize console for rich output
+# initialize console for formatted output
 console = Console()
 
+# command to process pdf and generate slide deck
 @app.command()
 def process(
     pdf_path: str = typer.Argument(..., help="Path to the PDF file to process"),
@@ -38,10 +40,11 @@ def process(
 ):
     """Process a PDF file and generate a slide deck"""
     
+    # enable verbose logging if requested
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    # Validate inputs
+    # validate pdf file exists and is pdf format
     if not os.path.exists(pdf_path):
         console.print(f"[red]Error: PDF file not found: {pdf_path}[/red]")
         raise typer.Exit(1)
@@ -50,12 +53,12 @@ def process(
         console.print("[red]Error: File must be a PDF[/red]")
         raise typer.Exit(1)
     
-    # Set up output directory
+    # set up output directory if specified
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         os.chdir(output_dir)
     
-    # Initialize services
+    # initialize services and process pdf
     try:
         with Progress(
             SpinnerColumn(),
@@ -68,7 +71,7 @@ def process(
             
             progress.update(task, description="Processing PDF...")
             
-            # Create processing request
+            # create processing request
             request = PDFProcessingRequest(
                 pdf_path=pdf_path,
                 max_chunks=max_chunks,
@@ -76,27 +79,28 @@ def process(
                 overlap=overlap
             )
             
-            # Process PDF
+            # run processing pipeline
             response = processing_service.process_pdf(request)
     
     except Exception as e:
         console.print(f"[red]Error initializing services: {str(e)}[/red]")
         raise typer.Exit(1)
     
+    # display results if successful
     if response.success:
         console.print(f"[green]✓ PDF processed successfully in {response.processing_time:.2f} seconds[/green]")
         
-        # Display slide deck summary
+        # show slide deck summary
         slide_deck = response.slide_deck
         if slide_deck:
             display_slide_summary(slide_deck)
             
-            # Inform where the processing service saved the file
+            # show output file location
             pdf_name = Path(pdf_path).stem
             output_file = Path("outputs") / f"{pdf_name}.json"
             console.print(f"[green]✓ Slide deck saved to: {output_file}[/green]")
             
-            # Display statistics
+            # display statistics
             slide_generator = SlideGenerator()
             stats = slide_generator.get_slide_statistics(slide_deck)
             display_statistics(stats)

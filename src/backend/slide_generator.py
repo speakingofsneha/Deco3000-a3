@@ -1,3 +1,4 @@
+# imports for type hints, json handling, logging, and file paths
 from typing import List, Dict, Any, Tuple
 import json
 import uuid
@@ -6,101 +7,173 @@ import logging
 from pathlib import Path
 import math
 
+# import data models for slides and outlines
 from .models import Slide, SlideDeck, SlideType, OutlineItem, BulletPoint
 
 logger = logging.getLogger(__name__)
 
+# class that generates slide decks from outlines and bullet points
 class SlideGenerator:
+    # initialize slide generator with counter and layout options
     def __init__(self):
+        # track slide numbers as we create them
         self.slide_counter = 0
+        # cycle through different media layouts for variety
         self.media_layout_cycle = [
-            "image-top-text-bottom",
-            "text-top-image-bottom",
-            "image-top-feature",
-            "image-bottom-feature"
+            "media-description-below",
+            "media-description-above",
+            "two-media-description",
+            "heading-two-media-description-below",
+            "heading-two-media-description",
+            "heading-four-points-media-left",
+            "heading-description-media-right"
         ]
 
+    # split bullets into smaller groups for slides with media layouts
     def _chunk_bullets_for_media(self, bullets: List[BulletPoint], max_group_size: int = 6) -> List[List[BulletPoint]]:
         """split media-heavy sections into bite-sized clusters for flexible layouts"""
         groups = []
+        # create groups of bullets up to max_group_size
         for i in range(0, len(bullets), max_group_size):
             groups.append(bullets[i:i + max_group_size])
         return groups
 
+    # determine where to place media between bullets in inline layouts
     def _build_media_breakpoints(self, bullet_count: int) -> List[int]:
         """create positions where inline media placeholders should appear"""
+        # place media every 3 bullets starting from bullet 3
         return [idx for idx in range(3, bullet_count + 1, 3)]
 
-    def _select_layout_for_group(self, bullet_count: int, group_index: int, inline_media: bool) -> str:
-        """pick a layout that matches the amount of text we are showing"""
-        if inline_media and bullet_count >= 4:
-            return "inline-gallery" if group_index % 2 == 0 else "inline-stagger"
-        if inline_media:
-            return "inline-stagger"
+    # choose the best layout based on number of bullets and group position
+    def _select_layout_for_group(self, bullet_count: int, group_index: int, has_media: bool) -> str:
+        """pick a layout that matches the amount of text we are showing, ensuring layout diversity"""
+        # for media slides, select from media layouts with diversity
+        if has_media:
+            # single bullet: alternate between single and double media layouts for diversity
+            if bullet_count == 1:
+                # mix of 1-image and 2-image layouts
+                single_media_layouts = ["media-description-below", "media-description-above"]
+                # every 3rd slide with 1 bullet gets 2 images for variety
+                if group_index % 3 == 0:
+                    return "two-media-description"
+                return single_media_layouts[group_index % len(single_media_layouts)]
+            
+            # two bullets: mix between 1-image and 2-image layouts
+            if bullet_count == 2:
+                # alternate between 2-image and 1-image layouts
+                if group_index % 2 == 0:
+                    return "two-media-description"  # 2 images
+                else:
+                    return "media-description-below"  # 1 image
+            
+            # three bullets: mix between 1-image and 2-image layouts
+            if bullet_count == 3:
+                layouts = [
+                    "heading-two-media-description-below",  # 2 images
+                    "heading-two-media-description",  # 2 images
+                    "heading-description-media-right"  # 1 image
+                ]
+                return layouts[group_index % len(layouts)]
+            
+            # four bullets: mix between 1-image and 2-image layouts
+            if bullet_count == 4:
+                layouts = [
+                    "heading-four-points-media-left",  # 1 image
+                    "heading-two-media-description-below",  # 2 images
+                    "heading-two-media-description"  # 2 images
+                ]
+                return layouts[group_index % len(layouts)]
+            
+            # 5+ bullets: alternate between different multi-media layouts (mix of 1 and 2 images)
+            if bullet_count >= 5:
+                layouts = [
+                    "heading-two-media-description-below",  # 2 images
+                    "heading-two-media-description",  # 2 images
+                    "heading-description-media-right",  # 1 image
+                    "heading-four-points-media-left"  # 1 image
+                ]
+                return layouts[group_index % len(layouts)]
+            
+            # fallback for media slides
+            return "media-description-below"
+        
+        # text-only layouts based on bullet count
         if bullet_count == 1:
-            return "image-top-feature"
+            return "key-statement"
         if bullet_count == 2:
-            return "text-top-image-bottom"
-        return self.media_layout_cycle[group_index % len(self.media_layout_cycle)]
+            return "two-col-description"
+        if bullet_count == 3:
+            # alternate between horizontal and list
+            return "three-points-list" if group_index % 2 == 0 else "three-points"
+        if bullet_count == 4:
+            # alternate between horizontal and grid
+            return "four-points-grid" if group_index % 2 == 0 else "four-points"
+        if bullet_count >= 5:
+            # for 5+ bullets, use grid layouts
+            if bullet_count == 6:
+                return "six-points"
+            # default to four-points-grid-below for 5+ bullets
+            return "four-points-grid-below"
+        
+        # fallback
+        return "key-statement"
     
+    # check if a slide should include media based on its content
     def _should_have_media(self, title: str, bullets: List[BulletPoint]) -> tuple[bool, str]:
         """
         Intelligently detect if a slide should have media based on content.
         Returns: (has_media: bool, media_type: str)
         Media types: 'interface', 'data', 'flow', 'diagram'
         """
-        # Combine title and all bullet text for analysis
+        # combine title and bullet text to analyze content
         combined_text = title.lower() + " " + " ".join([b.text.lower() for b in bullets])
         
-        # More specific keywords that strongly suggest interface/UI content
-        # Only matches when these specific phrases appear
+        # keywords that indicate interface or ui content
         interface_keywords = [
             'solution overview', 'user interface', 'ui design', 'ui mockup',
             'prototype', 'wireframe', 'mockup', 'screen design', 'interface design',
             'dashboard design', 'application interface', 'web app interface'
         ]
         
-        # Specific keywords for user flow (need "user" or "flow" together)
+        # keywords for user flow diagrams
         flow_keywords = [
             'user flow', 'user journey', 'user pathway', 'interaction flow',
             'navigation flow', 'workflow diagram', 'process flow'
         ]
         
-        # Specific keywords for data/research visualization
+        # keywords for data visualization content
         data_keywords = [
             'survey results', 'survey data', 'research findings', 'research results',
             'data visualization', 'chart', 'graph', 'statistics', 'survey responses',
             'interview results', 'study results', 'questionnaire results'
         ]
         
-        # Specific keywords for diagrams/architecture
+        # keywords for architecture or system diagrams
         diagram_keywords = [
             'system architecture', 'architecture diagram', 'system diagram',
             'flow diagram', 'process diagram', 'schema diagram', 'blueprint'
         ]
         
-        # Check for interface/UI content (most specific first)
+        # check content against keyword lists and return appropriate media type
         if any(keyword in combined_text for keyword in interface_keywords):
             return (True, 'interface')
         
-        # Check for user flow
         if any(keyword in combined_text for keyword in flow_keywords):
             return (True, 'flow')
         
-        # Check for data/research
         if any(keyword in combined_text for keyword in data_keywords):
             return (True, 'data')
         
-        # Check for diagrams
         if any(keyword in combined_text for keyword in diagram_keywords):
             return (True, 'diagram')
         
-        # Default: treat every case study section as visual to enable layouts
+        # default: enable media layouts for all case study sections
         if bullets:
             return (True, 'interface')
         
         return (False, '')
     
+    # main method to create a complete slide deck from outline and bullets
     def generate_slide_deck(
         self, 
         pdf_title: str, 
@@ -113,25 +186,26 @@ class SlideGenerator:
         
         slides = []
         
-        # Create title slide using PDF filename (without extension) to match crumb title
-        pdf_filename = Path(source_pdf).stem  # Gets filename without extension
+        # create title slide using pdf filename without extension
+        pdf_filename = Path(source_pdf).stem
         title_slide = self._create_title_slide(pdf_filename, source_pdf)
         slides.append(title_slide)
         
-        # Create content slides for each outline item
+        # create content slides for each outline section
         for outline_item in outline_items:
             if outline_item.title in bullets_data:
+                # create slides with bullets if available
                 content_slides = self._create_content_slides(
                     outline_item, 
                     bullets_data[outline_item.title]
                 )
                 slides.extend(content_slides)
             else:
-                # Create a simple slide if no bullets available
+                # create simple slide if no bullets available
                 simple_slide = self._create_simple_slide(outline_item)
                 slides.append(simple_slide)
         
-        # Generate slide deck - use PDF filename for deck title to match crumb title
+        # build final slide deck object
         slide_deck = SlideDeck(
             title=pdf_filename,
             slides=slides,
@@ -143,10 +217,12 @@ class SlideGenerator:
         logger.info(f"Generated slide deck with {len(slides)} slides")
         return slide_deck
     
+    # create the first slide with the document title
     def _create_title_slide(self, title: str, source_pdf: str) -> Slide:
         """Create title slide"""
         self.slide_counter += 1
         
+        # return slide object with title and metadata
         return Slide(
             id=f"slide_{self.slide_counter}",
             type=SlideType.TITLE,
@@ -161,6 +237,7 @@ class SlideGenerator:
             }
         )
     
+    # create one or more slides for an outline section with bullets
     def _create_content_slides(
         self, 
         outline_item: OutlineItem, 
@@ -169,30 +246,25 @@ class SlideGenerator:
         """Create content slides for an outline item"""
         slides = []
         
+        # return simple slide if no bullets available
         if not bullets:
             return [self._create_simple_slide(outline_item)]
         
         slide_title = outline_item.title
         
-        # Check if this topic should have media (check all bullets)
+        # check if this section should include media
         has_media, media_type = self._should_have_media(slide_title, bullets)
         
-        # Dedicated How Might We slide if this is the problem statement section
+        # create special problem statement slide format
         if "problem statement" in slide_title.lower() or "how might we" in slide_title.lower():
-            statement_text = (outline_item.description or "").strip()
-            if not statement_text and bullets:
+            # use exact text from bullets (which comes from outline description) without any modifications
+            statement_text = ""
+            if bullets and len(bullets) > 0:
                 statement_text = bullets[0].text.strip()
+            elif outline_item.description:
+                statement_text = outline_item.description.strip()
             
-            if statement_text and not statement_text.lower().startswith("how might we"):
-                core = statement_text.rstrip(".")
-                if core:
-                    core = core[0].lower() + core[1:]
-                    statement_text = f"How might we {core}"
-                    if not statement_text.endswith("?"):
-                        statement_text += "?"
-            elif statement_text and not statement_text.strip().endswith("?"):
-                statement_text = statement_text.strip() + "?"
-            
+            # create problem statement slide with exact text
             self.slide_counter += 1
             problem_slide = Slide(
                 id=f"slide_{self.slide_counter}",
@@ -206,9 +278,9 @@ class SlideGenerator:
                     )
                 ],
                 provenance=[],
-                metadata={
-                    "slide_number": self.slide_counter,
-                    "outline_item": outline_item.title,
+                        metadata={
+                            "slide_number": self.slide_counter,
+                            "outline_item": outline_item.title,
                     "has_media": False,
                     "media_type": "",
                         "layout": "problem-statement",
@@ -217,16 +289,21 @@ class SlideGenerator:
             )
             return [problem_slide]
         
+        # create slides with media layouts if content suggests media
         if has_media:
             layout_index = 0
+            # split bullets into groups for multiple slides
             bullet_groups = self._chunk_bullets_for_media(bullets)
             
+            # create a slide for each bullet group
             for group_index, group in enumerate(bullet_groups):
                 self.slide_counter += 1
                 
+                # collect page numbers from bullets for provenance
                 slide_pages = set()
                 clean_bullets = []
                 for bullet in group:
+                    # create clean bullet without provenance
                     clean_bullet = BulletPoint(
                         text=bullet.text,
                         provenance=[],
@@ -234,21 +311,24 @@ class SlideGenerator:
                     )
                     clean_bullets.append(clean_bullet)
                     
+                    # collect page references
                     for prov in bullet.provenance:
                         if prov.startswith("Page "):
                             slide_pages.add(prov)
                 
+                # determine layout and media placement
                 slide_provenance = sorted(list(slide_pages))
-                inline_media = len(clean_bullets) >= 3
-                media_breakpoints = self._build_media_breakpoints(len(clean_bullets)) if inline_media else []
-                layout = self._select_layout_for_group(len(clean_bullets), layout_index, inline_media)
+                layout = self._select_layout_for_group(len(clean_bullets), layout_index, has_media=True)
                 layout_index += 1
                 
-                if inline_media:
-                    media_slots = max(1, len(media_breakpoints))
+                # calculate how many media slots this slide needs
+                # for two-media layouts, need 2 slots; for single media, need 1
+                if layout in ["two-media-description", "heading-two-media-description-below", "heading-two-media-description"]:
+                    media_slots = 2
                 else:
-                    media_slots = max(1, math.ceil(len(clean_bullets) / 2))
+                    media_slots = 1
                 
+                # create slide with media metadata
                 slide = Slide(
                     id=f"slide_{self.slide_counter}",
                     type=SlideType.CONTENT,
@@ -263,28 +343,25 @@ class SlideGenerator:
                         "layout": layout,
                         "is_media_slide": False,
                         "media_slots": media_slots,
-                        "media_panel": layout_index,
-                        "inline_media": inline_media,
-                        "media_breakpoints": media_breakpoints
+                        "media_panel": layout_index
                     }
                 )
                 slides.append(slide)
         else:
-            # Regular slides: split bullets into slides (max 3 bullets per slide)
-            max_bullets_per_slide = 3
-            bullet_groups = [
-                bullets[i:i + max_bullets_per_slide] 
-                for i in range(0, len(bullets), max_bullets_per_slide)
-            ]
+            # create text-only slides with appropriate layouts
+            # group bullets by layout requirements
+            layout_index = 0
+            bullet_groups = self._chunk_bullets_for_media(bullets, max_group_size=6)
             
+            # create a slide for each bullet group
             for group_idx, bullet_group in enumerate(bullet_groups):
                 self.slide_counter += 1
                 
-                # Collect page numbers from all bullets for slide-level provenance
+                # collect page numbers from bullets for slide provenance
                 slide_pages = set()
                 clean_bullets = []
                 for bullet in bullet_group:
-                    # Remove provenance from individual bullets
+                    # create clean bullet without individual provenance
                     clean_bullet = BulletPoint(
                         text=bullet.text,
                         provenance=[],
@@ -292,13 +369,18 @@ class SlideGenerator:
                     )
                     clean_bullets.append(clean_bullet)
                     
-                    # Collect page numbers for slide provenance
+                    # collect page references for slide-level provenance
                     for prov in bullet.provenance:
                         if prov.startswith("Page "):
                             slide_pages.add(prov)
                 
                 slide_provenance = sorted(list(slide_pages))
                 
+                # select appropriate text-only layout
+                layout = self._select_layout_for_group(len(clean_bullets), layout_index, has_media=False)
+                layout_index += 1
+                
+                # create slide with layout metadata
                 slide = Slide(
                     id=f"slide_{self.slide_counter}",
                     type=SlideType.CONTENT,
@@ -312,7 +394,7 @@ class SlideGenerator:
                         "total_parts": len(bullet_groups),
                         "has_media": False,
                         "media_type": "",
-                        "layout": "default",
+                        "layout": layout,
                         "is_media_slide": False
                     }
                 )
@@ -320,11 +402,12 @@ class SlideGenerator:
         
         return slides
     
+    # create a simple slide when no bullets are provided
     def _create_simple_slide(self, outline_item: OutlineItem) -> Slide:
         """Create a simple slide when no bullets are available"""
         self.slide_counter += 1
         
-        # Check if this slide should have media
+        # create a bullet from the outline description
         bullets = [
             BulletPoint(
                 text=outline_item.description,
@@ -332,9 +415,10 @@ class SlideGenerator:
                 confidence=0.5
             )
         ]
+        # check if media should be included
         has_media, media_type = self._should_have_media(outline_item.title, bullets)
         
-        # For simple slides with media, use image-left-text-right layout
+        # use side-by-side layout if media is needed
         layout = "image-left-text-right" if has_media else "default"
         
         return Slide(
@@ -354,12 +438,14 @@ class SlideGenerator:
             }
         )
     
+    # create a summary slide listing outline sections
     def _create_summary_slide(self, outline_items: List[OutlineItem]) -> Slide:
         """Create summary slide"""
         self.slide_counter += 1
         
+        # create bullets for first 5 outline items
         summary_bullets = []
-        for i, item in enumerate(outline_items[:5], 1):  # Limit to 5 items
+        for i, item in enumerate(outline_items[:5], 1):
             summary_bullets.append(
                 BulletPoint(
                     text=f"{i}. {item.title}",
@@ -368,6 +454,7 @@ class SlideGenerator:
                 )
             )
         
+        # add note if there are more items
         if len(outline_items) > 5:
             summary_bullets.append(
                 BulletPoint(
@@ -388,9 +475,11 @@ class SlideGenerator:
             }
         )
     
+    # save slide deck to a json file
     def export_to_json(self, slide_deck: SlideDeck, filepath: str):
         """Export slide deck to JSON file"""
         try:
+            # write slide deck data as formatted json
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(slide_deck.dict(), f, indent=2, ensure_ascii=False)
             
@@ -400,9 +489,11 @@ class SlideGenerator:
             logger.error(f"Error exporting slide deck: {str(e)}")
             raise
     
+    # load slide deck from a json file
     def load_from_json(self, filepath: str) -> SlideDeck:
         """Load slide deck from JSON file"""
         try:
+            # read json file and create slide deck object
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
@@ -412,20 +503,24 @@ class SlideGenerator:
             logger.error(f"Error loading slide deck: {str(e)}")
             raise
     
+    # calculate statistics about the slide deck
     def get_slide_statistics(self, slide_deck: SlideDeck) -> Dict[str, Any]:
         """Get statistics about the slide deck"""
+        # count different types of slides
         total_slides = len(slide_deck.slides)
         content_slides = len([s for s in slide_deck.slides if s.type == SlideType.CONTENT])
         title_slides = len([s for s in slide_deck.slides if s.type == SlideType.TITLE])
         
+        # count total bullets across all slides
         total_bullets = sum(len(slide.content) for slide in slide_deck.slides)
         
-        # Count slides with provenance
+        # count slides that have provenance information
         slides_with_provenance = len([
             slide for slide in slide_deck.slides 
             if any(bullet.provenance for bullet in slide.content)
         ])
         
+        # return statistics dictionary
         return {
             "total_slides": total_slides,
             "content_slides": content_slides,

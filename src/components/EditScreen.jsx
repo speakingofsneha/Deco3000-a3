@@ -1,16 +1,16 @@
-// Edit Screen Component
+// edit screen component
 const EditScreen = ({ narrative, onContinue }) => {
   const [editedNarrative, setEditedNarrative] = React.useState(narrative || '');
-  const [isDisclaimerVisible, setIsDisclaimerVisible] = React.useState(true);
+  const [isDisclaimerExpanded, setIsDisclaimerExpanded] = React.useState(true);
   const textareaRef = React.useRef(null);
 
+  // update the textarea when narrative prop changes
   React.useEffect(() => {
     setEditedNarrative(narrative || '');
     if (textareaRef.current) {
-      // Set the text content of the contentEditable div
       if (narrative) {
         textareaRef.current.textContent = narrative;
-        // Format the content after setting it
+        // format after setting content
         setTimeout(() => {
           formatTextareaContent();
         }, 10);
@@ -20,25 +20,26 @@ const EditScreen = ({ narrative, onContinue }) => {
     }
   }, [narrative]);
 
+  // format markdown-style text to html (**text** = bold, [text] = italic)
   const formatTextareaContent = () => {
     if (!textareaRef.current) return;
     
     const element = textareaRef.current;
     const text = element.textContent || element.innerText || '';
     
-    // Save cursor position
+    // save cursor position before formatting
     const selection = window.getSelection();
     const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
     const cursorPosition = range ? range.startOffset : 0;
     
-    // Format the text: **text** becomes bold, [text] becomes italic
+    // convert markdown to html
     let formattedHtml = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\[(.*?)\]/g, '<em>$1</em>');
     
     element.innerHTML = formattedHtml;
     
-    // Restore cursor position if possible
+    // try to restore cursor position after formatting
     if (range && element.firstChild) {
       try {
         const newRange = document.createRange();
@@ -49,21 +50,23 @@ const EditScreen = ({ narrative, onContinue }) => {
         selection.removeAllRanges();
         selection.addRange(newRange);
       } catch (e) {
-        // Ignore cursor restoration errors
+        // ignore cursor restoration errors
       }
     }
   };
 
+  // handle typing in the textarea
   const handleInput = (e) => {
     const text = e.target.textContent || e.target.innerText || '';
     setEditedNarrative(text);
     
-    // Format after a short delay to allow typing
+    // format after a short delay so typing feels smooth
     setTimeout(() => {
       formatTextareaContent();
     }, 50);
   };
 
+  // handle paste events, strip formatting and insert plain text
   const handlePaste = (e) => {
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -73,6 +76,7 @@ const EditScreen = ({ narrative, onContinue }) => {
     }, 10);
   };
 
+  // validate and continue to next step
   const handleContinue = () => {
     if (!editedNarrative.trim()) {
       alert('Please generate a narrative');
@@ -88,31 +92,27 @@ const EditScreen = ({ narrative, onContinue }) => {
       <main className="edit-content">
         <div className="narrative-wrapper">
           <h1 className="review-title">Review outline</h1>
+          {/* collapsible disclaimer card */}
           <div className="disclaimer-container">
-            {isDisclaimerVisible ? (
-              <div className="disclaimer-card">
-                <div className="disclaimer-icon">i</div>
-                <div className="disclaimer-copy">
-                  <p className="disclaimer-heading">Dis</p>
-                  <p className="disclaimer-text">{disclaimerText}</p>
-                </div>
-                <button 
-                  className="disclaimer-close"
-                  onClick={() => setIsDisclaimerVisible(false)}
-                  aria-label="Dismiss disclaimer"
+            <div className={`disclaimer-card ${isDisclaimerExpanded ? 'expanded' : 'collapsed'}`}>
+              <div className="disclaimer-icon">i</div>
+              <div className="disclaimer-copy">
+                {/* clickable header to expand/collapse */}
+                <div 
+                  className="disclaimer-header"
+                  onClick={() => setIsDisclaimerExpanded(!isDisclaimerExpanded)}
+                  style={{ cursor: 'pointer' }}
                 >
-                  ✕
-                </button>
+                  <p className="disclaimer-heading">Disclaimer</p>
+                  <span className={`disclaimer-arrow ${isDisclaimerExpanded ? 'expanded' : ''}`}>▼</span>
+                </div>
+                {isDisclaimerExpanded && (
+                  <p className="disclaimer-text">{disclaimerText}</p>
+                )}
               </div>
-            ) : (
-              <button 
-                className="disclaimer-show"
-                onClick={() => setIsDisclaimerVisible(true)}
-              >
-                Show disclaimer
-              </button>
-            )}
+            </div>
           </div>
+          {/* editable textarea with markdown formatting */}
           <div className="textarea-container">
             <div
               ref={textareaRef}
@@ -123,13 +123,13 @@ const EditScreen = ({ narrative, onContinue }) => {
               data-placeholder="Generate a narrative for your case study here..."
               suppressContentEditableWarning={true}
             />
+            <button 
+              className="continue-button" 
+              onClick={handleContinue}
+            >
+              Continue
+            </button>
           </div>
-          <button 
-            className="continue-button" 
-            onClick={handleContinue}
-          >
-            Continue
-          </button>
         </div>
       </main>
     </div>

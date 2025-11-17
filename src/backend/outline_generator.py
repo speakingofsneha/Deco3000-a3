@@ -1,3 +1,4 @@
+# generates outline structure from pdf content or narrative
 from typing import List, Dict, Any
 import logging
 import json
@@ -9,14 +10,77 @@ from .llm_service import get_llm_service
 
 logger = logging.getLogger(__name__)
 
+# generates outline sections from content or narrative
 class OutlineGenerator:
+    # initialize with llm service
     def __init__(self):
         self.llm_service = get_llm_service()
     
+    # extract outline sections from narrative text using llm
     def generate_outline_from_narrative(self, narrative: str, pdf_title: str) -> List[OutlineItem]:
-        """Generate outline structure from the narrative plan"""
+        """Generate outline structure from the narrative plan, extracting exact text for each section"""
         logger.info("Generating outline from narrative plan")
         
+        # first, try to extract sections directly from markdown headings
+        import re
+        sections = []
+        
+        # look for markdown headings like **title** or ## title
+        heading_pattern = r'\*\*([^*]+)\*\*|##\s+([^\n]+)'
+        matches = list(re.finditer(heading_pattern, narrative))
+        
+        if matches:
+            # extract sections based on markdown headings
+            for i, match in enumerate(matches):
+                # get the title (either from **title** or ## title)
+                title = match.group(1) if match.group(1) else match.group(2)
+                title = title.strip()
+                
+                # find the text content for this section
+                section_start = match.end()
+                section_end = matches[i + 1].start() if i + 1 < len(matches) else len(narrative)
+                section_text = narrative[section_start:section_end].strip()
+                
+                # clean up the section text - remove extra whitespace but keep paragraphs
+                section_text = re.sub(r'\n{3,}', '\n\n', section_text)
+                section_text = section_text.strip()
+                
+                # use the first 1-2 sentences as description, or first 150 chars
+                if section_text:
+                    sentences = re.split(r'[.!?]+', section_text)
+                    sentences = [s.strip() for s in sentences if s.strip()]
+                    if sentences:
+                        if len(sentences) <= 2:
+                            description = section_text[:200].strip()
+                        else:
+                            description = '. '.join(sentences[:2]) + '.'
+                    else:
+                        description = section_text[:200].strip()
+                else:
+                    description = ""
+                
+                sections.append({
+                    "title": title,
+                    "description": description,
+                    "text": section_text  # store full text for later use
+                })
+        
+        # if we found sections from markdown, use them
+        if sections:
+            outline_items = []
+            for idx, section in enumerate(sections, start=1):
+                outline_items.append(
+                    OutlineItem(
+                        title=self._clean_title(section["title"]),
+                        description=section["description"],
+                        level=1,
+                        order=idx
+                    )
+                )
+            logger.info(f"Extracted {len(outline_items)} outline items directly from narrative headings")
+            return outline_items
+        
+        # fallback: use llm to extract sections if no markdown headings found
         prompt = f"""You are analyzing a UX case study narrative to extract the key sections/story beats.
 
 CASE STUDY NARRATIVE:
@@ -27,12 +91,15 @@ Extract 6-10 key sections from this narrative. Each section should represent a m
 
 REQUIREMENTS:
 1. If the narrative already uses explicit Markdown headings (e.g., "**tldr;**", "**Team and Constraints**"), REUSE THOSE EXACT TITLES in the same order.
-2. Extract sections that align with the narrative's story structure, with SPECIAL EMPHASIS on process sections: ideation, wireframes, mockups, prototyping, testing, iterations, design process, etc.
-3. Create clear, descriptive titles for any additional sections you must infer (e.g., "Understanding the Problem", "User Research Insights", "Ideation and Concept Development", "Wireframes and Early Designs", "Mockups and Visual Design", "Prototyping Process", "Testing and Iterations", etc.)
-4. Order sections to match the narrative's flow. Do NOT reorder the narrative's headings.
-5. Each section should have a brief description (1-2 sentences) that explains what content belongs in that section based on the narrative
-6. The sections should reflect the story beats in the narrative, with PARTICULAR ATTENTION to design process sections (ideation, wireframes, mockups, prototyping, testing, iterations)
-7. Ensure process-related sections are included: ideation, wireframes, mockups, prototyping, testing, and iterations
+2. Extract ALL sections from the narrative - you MUST include every major section mentioned, including "The Final Outcome" and "What Didn't Go as Planned" if they appear in the narrative.
+3. Extract sections that align with the narrative's story structure, with SPECIAL EMPHASIS on process sections: ideation, wireframes, mockups, prototyping, testing, iterations, design process, etc.
+4. Create clear, descriptive titles for any additional sections you must infer. Use simple, direct, student-friendly language that matches the style of a visual report outline. Avoid academic or formal phrasing.
+5. Order sections to match the narrative's flow. Do NOT reorder the narrative's headings.
+6. Each section should have a brief description (1-2 sentences) that explains what content belongs in that section based on the narrative. Use simple, clear, human language - match the style and tone of a student's visual report outline. Write like you're explaining to a friend. Keep it direct and straightforward.
+7. The sections should reflect the story beats in the narrative, with PARTICULAR ATTENTION to design process sections (ideation, wireframes, mockups, prototyping, testing, iterations)
+8. Ensure process-related sections are included: ideation, wireframes, mockups, prototyping, testing, and iterations
+9. CRITICAL: You MUST include "The Final Outcome" and "What Didn't Go as Planned" sections if they appear in the narrative - do not skip any sections
+10. CRITICAL: Match the style and tone of the visual report outline in the PDF - use simple, direct, student-friendly language. Avoid complex words, jargon, or academic phrasing.
 
 OUTPUT FORMAT:
 Return a JSON array of sections, each with:
@@ -52,7 +119,7 @@ Return ONLY the JSON array, no other text."""
             messages = [
                 {
                     "role": "system",
-                    "content": "You are an expert at analyzing narratives and extracting structured outlines. You identify key story beats and create logical section divisions that reflect the narrative's flow."
+                    "content": "You are an expert at analyzing narratives and extracting structured outlines. You identify key story beats and create logical section divisions that reflect the narrative's flow. CRITICAL: Match the style and tone of a visual report outline in a PDF - use simple, direct, student-friendly language. Avoid complex words, jargon, academic phrasing, or convoluted sentences. Write like a student explaining their project to a friend - keep it straightforward and clear."
                 },
                 {"role": "user", "content": prompt}
             ]
@@ -158,6 +225,7 @@ Return ONLY the JSON array, no other text."""
         
         return sections
     
+    # generate outline by detecting topics in content and ordering them canonically
     def generate_outline(self, pdf_title: str, chunks: List[Chunk], max_sections: int = 8) -> List[OutlineItem]:
         """Generate outline with content-aware ordering and guaranteed coverage of key design topics.
         - Derive topics from content (not PDF headers)
@@ -165,7 +233,7 @@ Return ONLY the JSON array, no other text."""
         - Fall back to PDF order when topics are ambiguous
         """
 
-        # Canonical topic order for design visual reports
+        # standard order for design case study sections
         topic_order = [
             "Context",
             "Problem Overview",
@@ -279,11 +347,12 @@ Return ONLY the JSON array, no other text."""
             ],
         }
 
-        # Aggregate topic candidates across chunks
+        # scan chunks to find which topics are present
         topic_candidates: Dict[str, Dict[str, Any]] = {}
         for chunk in chunks:
             text = chunk.text
             page = chunk.page_number
+            # check if chunk matches any topic pattern
             for topic, patterns in topic_patterns.items():
                 if any(re.search(p, text, flags=re.IGNORECASE) for p in patterns):
                     if topic not in topic_candidates:
@@ -292,14 +361,15 @@ Return ONLY the JSON array, no other text."""
                             "snippets": [text[:300]],
                         }
                     else:
+                        # track earliest page and collect snippets
                         topic_candidates[topic]["first_page"] = min(topic_candidates[topic]["first_page"], page)
                         if len(topic_candidates[topic]["snippets"]) < 3:
                             topic_candidates[topic]["snippets"].append(text[:300])
 
-        # Build ordered list of topics present, respecting canonical order
+        # build ordered list following canonical order
         ordered_topics = [t for t in topic_order if t in topic_candidates]
 
-        # If we still have room, append additional topics by earliest page
+        # add remaining topics by page order if space available
         if len(ordered_topics) < max_sections:
             remaining = [
                 (t, data["first_page"]) for t, data in topic_candidates.items() if t not in ordered_topics
@@ -310,15 +380,16 @@ Return ONLY the JSON array, no other text."""
                     break
                 ordered_topics.append(t)
 
+        # create outline items from detected topics
         outline_items: List[OutlineItem] = []
         order_counter = 1
 
-        # Helper to create description from snippets
+        # helper to create description from text snippets
         def build_desc(snippets: List[str]) -> str:
             joined = " ".join(snippets)
             return self._create_description(joined)
 
-        # Create items from detected topics first
+        # create outline items for each detected topic
         for topic in ordered_topics[:max_sections]:
             data = topic_candidates[topic]
             outline_items.append(
@@ -334,40 +405,43 @@ Return ONLY the JSON array, no other text."""
         logger.info(f"Generated outline with {len(outline_items)} items (content-aware ordering)")
         return outline_items
     
+    # clean title by removing numbers and formatting
     def _clean_title(self, title: str) -> str:
         """Clean and improve title"""
         
-        # Remove leading numbers: "01 ", "1. ", etc.
+        # remove leading numbers and formatting
         title = re.sub(r'^\d+\.?\s+', '', title)
         title = re.sub(r'^\d{2}\s+', '', title)
         
-        # If it's all lowercase, capitalize it properly
+        # capitalize if all lowercase
         if title.islower():
             title = title.title()
         
-        # Clean formatting
+        # clean up formatting
         title = title.replace('_', ' ')
         title = ' '.join(title.split())
         
-        # Limit length
+        # limit length
         if len(title) > 60:
             title = title[:57] + "..."
         
         return title.strip()
     
+    # create short description from text snippet
     def _create_description(self, text: str) -> str:
         """Create description from text"""
-        # Take first sentence or 150 chars
+        # use first sentence if substantial, otherwise first 150 chars
         sentences = text.split('.')
         if sentences and len(sentences[0]) > 20:
             desc = sentences[0].strip() + '.'
         else:
             desc = text[:150].strip()
         
-        # Clean up
+        # clean up whitespace
         desc = desc.replace('\n', ' ')
         desc = ' '.join(desc.split())
         
+        # add ellipsis if truncated
         if len(text) > len(desc):
             desc += '...'
         
