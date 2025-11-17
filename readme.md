@@ -332,9 +332,6 @@ If you encounter issues:
 3. **Verify Ollama is running**: `ollama serve` should be running in a separate terminal
 4. **Check system requirements**: Make sure you have Python 3.8+ and enough RAM
 
-## License
-
-MIT License - See LICENSE file for details
 
 ## Credits
  by alyssa & sneha for deco3000
